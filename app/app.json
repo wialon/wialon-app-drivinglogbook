@@ -1,0 +1,54 @@
+{
+	"name": "driving_logbook",
+	"url_name": "drivinglogbook",
+	"title": "Driving Logbook",
+	"description": "Allows requesting report for unit's trips with an opportunity of adjusting trip status and making user's notes",
+	"author": {
+		"name": "Alexander Chernetsky",
+		"url": "http://gurtam.com"
+	},
+	"licenses": [
+		{
+			"type":" LGPL",
+			"url": "http://www.gnu.org/licenses/lgpl.html"
+		}
+	],
+	"dependencies": {
+		"jquery": "1.8.3",
+		"jquery.ui": "1.10.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/wialon/wialon-app-drivinglogbook"
+	},
+	"modules": [
+		"SDK"
+	],
+	"params": [
+		"Active SID",
+		"Base URL",
+		"Host URL",
+		"Language"
+	],
+	"language": [
+		"en",
+		"ru"
+	],
+	"build_date": "2013-11-19",
+	"version": "1.4",
+	"keywords": [
+		"wialon",
+		"wialon-apps",
+		"log book"
+	],
+	"browser": {
+		"ie": "9+",
+		"opera": "10+",
+		"safari": "5+",
+		"chrome": "20+",
+		"firefox": "15+"
+	},
+	"logo": "logo.png",
+	"images_path": "images",
+	"desc_path": "desc"
+}

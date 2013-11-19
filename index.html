@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<!-- ************************************************************************
+
+   Wialon Apps - WEB applications, developed on the basis of SDK for Wialon Hosting and Wialon Kit.
+
+   http://apps.gurtam.com
+
+   Copyright:
+     2002-2013 Gurtam, http://gurtam.com
+
+   License:
+     LGPL: http://www.gnu.org/licenses/lgpl.html
+
+   Authors:
+     * Alexander Chernetsky
+
+************************************************************************ -->
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+	<title>Driving Logbook</title>
+	<link rel="icon" type="image/png" href="./img/favicon.png">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<meta http-equiv="pragma" content="no-cache"/>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
+	<meta name="apple-mobile-web-app-capable" content="yes"/>
+	<meta names="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+	
+	<link rel="stylesheet" media="screen" type="text/css" href="./css/jquery-ui-1.10.0.custom.min.css"/>
+	<link rel="stylesheet" media="screen" type="text/css" href="./css/jquery-ui-timepicker-addon.css"/>
+	
+	<script src="./js/jquery-1.8.3.min.js"></script>
+	<script src="./js/jquery.localisation.js"></script>
+	<script src="./js/underi18n.js"></script>
+	<script src="./js/jquery-ui-1.10.0.custom.min.js"></script>	
+	<script src="./js/jquery.activity-indicator-1.0.0.min.js"></script>
+
+	<script src="./js/jquery-ui-timepicker-addon.js"></script>
+	<script src="./js/jquery-ui-sliderAccess.js"></script>
+	<script src="./js/underscore-min.js"></script>
+	
+	<script src="./js/jquery.textbox.js"></script>
+	<script src="./js/table.js"></script>
+	<script src="./js/main.js"></script>
+	<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
+  </head>
+  <body
+	 <!-- BEGIN: Underscore Template Definition. See: http://underscorejs.org/#template. -->
+	 <script type="text/template" class="template" id="row">
+	   <tr id="<%= id %>">
+		 <td>
+		   <span class="number"><%= index %>.</span>
+		   <%= time_from %>
+		 </td>
+		 <td><%= time_to %></td>
+		 <td><%= duration %></td>
+		 <td class="address-cell"><%= from %></td>
+		 <td class="address-cell"><%= to %></td>
+		 <td><%= driver %></td>
+		 <td><%= uname %></td>
+		 <td><%= time_change %></td>
+		 <td class="cell-table-input">
+		   <div class="textboxcontainer">
+			 <input type="text" class="tb input-select table message" />
+		   </div>
+		 </td>
+		 <td>
+		   <div class="textboxcontainer">
+			 <input type="text" class="tb input-select table note" />
+		   </div>
+		 </td
+	   </tr>
+	 </script>
+
+	 <script type="text/template" class="template" id="print">
+	   <html>
+		 <head>
+		   <style>
+			 th {
+			 border: 1px solid #000 !important;
+			 padding: 3px !important;
+			 vertical-align: top !important;
+			 }
+			 td {
+			 border: 1px solid #000 !important;
+			 padding: 3px !important;
+			 vertical-align: top !important;
+			 }
+		   </style>
+		 </head>
+		 <body style="background:none !important;">
+		   
+		   <div style="text-align: center !important;">
+			 <span><%_ Logbook %></span></br>
+			 <span><%_ Unit %> '<%= uname %>'</span></br>
+			 <span><%_ From %> <%= tfrom %> <%_ To %> <%= tto %></span></br>
+		   </div>
+		   
+		   <table style="border: 1px solid #000;border-collapse: collapse;width: 100%;font-size:8px !important;">
+			 <thead>
+			   <tr>
+				 <th><%_ Beginning %></th>
+				 <th><%_ End %></th>
+				 <th><%_ Duration %></th>
+				 <th><%_ Initial location %></th>
+				 <th><%_ Final location %></th>
+				 <th><%_ Driver %></th>
+				 <th><%_ User %></th>
+				 <th><%_ Last changes %></th>
+				 <th><%_ Trip status %></th>
+				 <th><%_ Notes %></th>
+			   </tr>
+			 </thead>
+			 <tbody id="print-tbody" style="vertical-align: middle;"><%= content %></tbody>
+		   </table>
+		 </body>
+	   </html>
+	 </script>
+
+	 <script type="text/template" class="template" id="print-row">
+	   <tr>
+		 <td>
+		   <span class="number"><%= data.index %>.</span>
+		   <%= data.time_from %>
+		 </td>
+		 <td><%= data.time_to %></td>
+		 <td><%= data.duration %></td>
+		 <td><%= data.from %></td>
+		 <td><%= data.to %></td>
+		 <td><%= data.driver %></td>
+		 <td><%= data.uname %></td>
+		 <td><%= data.time_change %></td>
+		 <td><%= data.message %></td>	
+		 <td><%= data.note %></td>	
+	   </tr>
+	 </script>
+	 <!-- END: Underscore Template Definition. -->
+	
+	<div id="header">
+	  <img id="logo" style="float: left;"src="img/logo.png"/>
+	  <div id="logo-title" class="title">Delivery service</div>
+	  <div class="clear"></div>
+	</div>
+
+	<div style="top: 70px; left: 0px; width: 100%;">
+	  <div id="data-inputs">
+		<span id= "unit-text-span" class="input-title"></span>
+		<span><select class="input-select" id="units-select" style="width: 200px;"></select></span>
+		<span id="from-text-span" class="input-title" style="margin-left: 10px;"></span>
+		<span><input type="text" id="date-from"></span>
+		<span id="to-text-span" class="input-title" style="margin-left: 3px;"></span>
+		<span><input type="text" id="date-to"></span>
+		<span><input id="execute-btn" type="button" class="btn" value=""/></span>
+	  </div>
+
+	  <div class="separator"></div>
+
+	  <div id="table-wrap">
+		<table id="paginated-table" class="ptable">
+		  <thead>
+			<tr>
+			  <th id="th-text-beginning" scope="col"></th>
+			  <th id="th-text-end" scope="col"></th>
+			  <th id="th-text-duration" scope="col"></th>
+			  <th id="th-text-init-location" scope="col" class="no-wrap"></th>
+			  <th id="th-text-final-location" scope="col" class="no-wrap"></th>
+			  <th id="th-text-driver" scope="col"></th>
+			  <th id="th-text-user" scope="col"></th>
+			  <th id="th-text-last-changes" scope="col" class="no-wrap"></th>
+			  <th scope="col" class="cell-table-input">
+				<span id="th-span-trip-status"></span>
+				<span>
+				  <select id="all-type-for-trip" class="input-select">
+					<option value="0"></option>
+					<option value="1">Business</option>
+					<option value="2">Personal</option>
+				</select>
+				</span>
+			  </th>
+			  <th id="th-text-notes" scope="col"></th>
+			</tr>
+		  </thead>
+		  <tbody></tbody>
+		</table>
+	  </div>
+	</div>
+	
+	<div class="table-footer">
+	  <div id="table-instruments" style="margin-left: 28px;">
+		<span>
+		  <select id="nrowonpage" class="input-select">
+			<option value="10">10</option>
+			<option value="25">25</option>
+			<option value="50">50</option>
+			<option value="100">100</option>
+		  </select>
+		</span>
+
+		<div class="vseparator"></div>
+
+		<div id="top" class="pfirst pbtn">
+		  <span></span>
+		</div>
+		
+		<div id="prev" class="pprev pbtn">
+		  <span></span>
+		</div>
+
+		<div class="pgroup">
+		  <span class="pcontrol">
+			<table>
+			  <tbody>
+				<tr>
+				  <td style="vertical-align: middle;">
+					<b id="page" style="font-weight:normal;"></b>
+				  </td>
+				  <td style="vertical-align: middle; padding-left: 2px; padding-right: 2px;">
+					<input type="text" id="page_selector" size="4" value="1" alt="">
+				  </td>
+				  <td style="vertical-align: middle;">
+					<b id="of" style="font-weight:normal;"></b>
+					<span id="cpages">0</span>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </span>
+		</div>
+
+		<div id="next" class="pnext pbtn">
+		  <span></span>
+		</div>
+
+		<div id="last" class="plast pbtn">
+		  <span></span>
+		</div>
+		
+		<div class="vseparator"></div>
+
+		<div class="pgroup">
+		  <div class="pgroup">
+			<table>
+			  <tbody>
+				<tr>
+				  <td style="vertical-align: middle; padding-left: 2px; padding-right: 2px;">
+					<span id="pagestat"></span>
+				  </td>
+				</tr>
+			  </tbody>
+			</table>
+		  </div>
+		</div>
+		
+		<div>
+		  <div class="pgroup" style="">
+			<input id="apply-btn" type="button" class="btn" value="Apply"/>
+		  </div>
+		  <div class="pgroup">
+			<input id="print-btn" type="image" src="./img/print.png" class="print" value="" />
+		  </div>
+		</div>
+
+		<div class="clear"></div>
+	  </div>
+	</div>
+  </body>
+</html>
