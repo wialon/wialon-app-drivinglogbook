@@ -6,7 +6,7 @@ Driving Logbook app allows requesting a special report for trips. This report sp
 Besides, the columns, containing user notes, can be added to the report manually. All the changes, made by the user, are logged. This report can be printed.
 
 ## License:
-LGPL: http://www.gnu.org/licenses/lgpl.html
+[The MIT License](../master/LICENSE-MIT)
 
 ## Requirements:
  * Browser: Google Chome 20+, Firefox 15+, Safari 5+, IE 9+, Opera 10+
