@@ -10,7 +10,7 @@ TRANSLATIONS = {
 	
 	"To": "До",
 	
-	"Generate": "Выполнить",
+	"OK": "OK",
 	
 	"Beginning": "Начало",
 	
@@ -21,6 +21,12 @@ TRANSLATIONS = {
 	"Initial location": "Начальное положение",
 	
 	"Final location": "Конечное положение",
+
+    "Initial mileage": "Начальный пробег",
+
+    "Final mileage": "Конечный пробег",
+
+    "Mileage": "Пробег",
 	
 	"Driver": "Водитель",
 	
@@ -43,8 +49,14 @@ TRANSLATIONS = {
 	"Apply": "Применить",
 	
 	"Displaying %d to %d of %d items": "Отображено с %d по %d из %d строк",
-	
-	"List of units empty.": "Список объектов пуст.",
+
+    "%d pages_1": "%d страница",
+    "%d pages_2": "%d страницы",
+    "%d pages_5": "%d страниц",
+
+    "Displaying %d to %d of %d messages": "Отображается с %d по %d из %d сообщений",
+
+    "List of units empty.": "Список объектов пуст.",
 	
 	"Login error.": "Ошибка входа.",
 	
@@ -52,5 +64,64 @@ TRANSLATIONS = {
 	
 	"Please select time interval.": "Пожалуйста, укажите временной интервал.",
 	
-	"No data for selected interval.": "Нет данных за указанный интервал."
+	"No data for selected interval.": "Нет данных за указанный интервал.",
+
+    "km": "км",
+
+    "mi": "ми",
+
+    "Start": "Начало",
+
+    "Prev": "Предыдущая",
+
+    "Next": "Следующая",
+
+    "Print": "Печать",
+
+    "Yesterday": "Вчера",
+    "Today": "Сегодня",
+    "Week": "Неделя",
+    "Month": "Месяц",
+    "Custom": "Другой",
+
+    "Sunday": "Воскресенье",
+    "Monday": "Понедельник",
+    "Tuesday": "Вторник",
+    "Wednesday": "Среда",
+    "Thursday": "Четверг",
+    "Friday": "Пятница",
+    "Saturday": "Суббота",
+
+    "January": "Январь",
+    "February": "Февраль",
+    "March": "Март",
+    "April": "Апрель",
+    "May": "Май",
+    "June": "Июнь",
+    "July": "Июль",
+    "August": "Август",
+    "September": "Сентябрь",
+    "October": "Октябрь",
+    "November": "Ноябрь",
+    "December": "Декабрь",
+
+    "Sun": "Вс",
+    "Mon": "Пн",
+    "Tue": "Вт",
+    "Wed": "Ср",
+    "Thu": "Чт",
+    "Fri": "Пт",
+    "Sat": "Сб",
+
+    "Jan": "Янв",
+    "Feb": "Фев",
+    "Mar": "Мар",
+    "Apr": "Апр",
+    "Jun": "Июн",
+    "Jul": "Июл",
+    "Aug": "Авг",
+    "Sep": "Сен",
+    "Oct": "Окт",
+    "Nov": "Ноя",
+    "Dec": "Дек"
 }

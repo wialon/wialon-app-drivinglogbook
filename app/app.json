@@ -22,20 +22,22 @@
 		"url": "https://github.com/wialon/wialon-app-drivinglogbook"
 	},
 	"modules": [
-		"SDK"
+		"sdk"
 	],
 	"params": [
 		"Active SID",
 		"Base URL",
 		"Host URL",
-		"Language"
+		"Language",
+		"Current user"
 	],
 	"language": [
 		"en",
 		"ru"
 	],
-	"build_date": "2013-11-26",
-	"version": "1.4",
+	"build_date": "2014-03-20",
+	"release_date": "2013-01-27",
+	"version": "1.5",
 	"keywords": [
 		"wialon",
 		"wialon-apps",

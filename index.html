@@ -44,32 +44,130 @@
 	<script src="./js/main.js"></script>
 	<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
   </head>
-  <body
+  <body>
 	 <!-- BEGIN: Underscore Template Definition. See: http://underscorejs.org/#template. -->
+	 <script type="text/template" class="template" id="th-row">
+         <tr>
+             <th id="nrowonpage-wrap"></th>
+             <% if (SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
+             <% if (SetTable.end) { %><th><%_ End %></th><% } %>
+             <% if (SetTable.duration) { %><th><%_ Duration %></th><% } %>
+             <% if (SetTable.initLocation) { %><th><%_ Initial location %></th><% } %>
+             <% if (SetTable.startOdometer) { %><th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th><% } %>
+             <% if (SetTable.finalLocation) { %><th><%_ Final location %></th><% } %>
+             <% if (SetTable.endOdometer) { %><th><%_ Final mileage %>,&nbsp;<%= metric_m %></th><% } %>
+             <% if (SetTable.tripLength) { %><th><%_ Mileage %>,&nbsp;<%= metric_m %></th><% } %>
+             <% if (SetTable.driver) { %><th><%_ Driver %></th><% } %>
+             <% if (SetTable.user) { %><th><%_ User %></th><% } %>
+             <% if (SetTable.lastChanges) { %><th><%_ Last changes %></th><% } %>
+             <% if (SetTable.tripStatus) { %>
+                 <th scope="col" class="cell-table-input">
+                    <span class="th-trip-status"><%_ Trip status %></span>
+                    <span>
+                      <select id="all-type-for-trip" class="all-type-for-trip input-select">
+                          <option value="0"></option>
+                          <option value="1">Business</option>
+                          <option value="2">Personal</option>
+                      </select>
+                    </span>
+                 </th>
+             <% } %>
+             <% if (SetTable.notes) { %><th><%_ Notes %></th><% } %>
+             <th id="expand-menu"></th>
+         </tr>
+	 </script>
 	 <script type="text/template" class="template" id="row">
 	   <tr id="<%= id %>">
-		 <td>
-		   <span class="number"><%= index %>.</span>
-		   <%= time_from %>
-		 </td>
-		 <td><%= time_to %></td>
-		 <td><%= duration %></td>
-		 <td class="address-cell"><%= from %></td>
-		 <td class="address-cell"><%= to %></td>
-		 <td><%= driver %></td>
-		 <td><%= uname %></td>
-		 <td><%= time_change %></td>
-		 <td class="cell-table-input">
-		   <div class="textboxcontainer">
-			 <input type="text" class="tb input-select table message" />
-		   </div>
-		 </td>
-		 <td>
-		   <div class="textboxcontainer">
-			 <input type="text" class="tb input-select table note" />
-		   </div>
-		 </td
+         <td>
+           <span class="number"><%= index %>.</span>
+         </td>
+         <% if (SetTable.beginning) { %><td class="td-date"><%= time_from %></td><% } %>
+         <% if (SetTable.end) { %><td class="td-date"><%= time_to %></td> <% } %>
+         <% if (SetTable.duration) { %><td><%= duration %></td> <% } %>
+         <% if (SetTable.initLocation) { %><td class="address-cell"><%= fromL %><% if( begin.geoZone ){ %>; <span class="geozone"><%= begin.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+         <% if (SetTable.startOdometer) { %><td><%= start_odometer %></td> <% } %>
+         <% if (SetTable.finalLocation) { %><td class="address-cell"><%= toL %><% if( end.geoZone ){ %>; <span class="geozone"><%= end.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+         <% if (SetTable.endOdometer) { %><td><%= end_odometer %></td> <% } %>
+         <% if (SetTable.tripLength) { %><td><%= trip_length %></td> <% } %>
+         <% if (SetTable.driver) { %><td><%= driver %></td> <% } %>
+         <% if (SetTable.user) { %><td class="uname-wrap"><%= uname %></td> <% } %>
+         <% if (SetTable.lastChanges) { %><td class="td-date time_change-wrap"><%= time_change %></td> <% } %>
+         <% if (SetTable.tripStatus) { %><td class="cell-table-input">
+           <div style="position: relative">
+               <div class="textboxcontainer">
+                   <input type="text" class="tb input-select table message" />
+               </div>
+           </div>
+		 </td><% } %>
+         <% if (SetTable.notes) { %><td>
+           <div style="position: relative">
+               <div class="textboxcontainer">
+                   <textarea class="tb input-select note" rows="2"></textarea>
+               </div>
+            </div>
+		 </td><% } %>
 	   </tr>
+	 </script>
+
+	 <script type="text/template" class="template" id="select-table-columns-list-tpl">
+         <li>
+             <span class="menu-checkbox-input"><input id="column-beginning" name="beginning" class="menu-checkbox-input" type="checkbox" <% if (SetTable.beginning) { %>checked="true"><% } %></span>
+             <label for="column-beginning" class="th-text-beginning"><%_ Beginning %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-end" name="end" class="menu-checkbox-input" type="checkbox" <% if (SetTable.end) { %>checked="true"><% } %></span>
+             <label for="column-end" class="th-text-end"><%_ End %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-duration" name="duration" class="menu-checkbox-input" type="checkbox" <% if (SetTable.duration) { %>checked="true"><% } %></span>
+             <label for="column-duration" class="th-text-duration"><%_ Duration %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-init-location" name="initLocation" class="menu-checkbox-input" type="checkbox" <% if (SetTable.initLocation) { %>checked="true"><% } %></span>
+             <label for="column-init-location" class="th-text-init-location"><%_ Initial location %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-start-odometer" name="startOdometer" class="menu-checkbox-input" type="checkbox" <% if (SetTable.startOdometer) { %>checked="true"><% } %></span>
+             <label for="column-start-odometer" class="th-text-start-odometer"><%_ Initial mileage %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-final-location" name="finalLocation" class="menu-checkbox-input" type="checkbox" <% if (SetTable.finalLocation) { %>checked="true"><% } %></span>
+             <label for="column-final-location" class="th-text-final-location"><%_ Final location %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-end-odometer" name="endOdometer" class="menu-checkbox-input" type="checkbox" <% if (SetTable.endOdometer) { %>checked="true"><% } %></span>
+             <label for="column-end-odometer" class="th-text-end-odometer"><%_ Final mileage %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-trip-length" name="tripLength" class="menu-checkbox-input" type="checkbox" <% if (SetTable.tripLength) { %>checked="true"><% } %></span>
+             <label for="column-trip-length" class="th-text-trip-length"><%_ Mileage %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-driver" name="driver" class="menu-checkbox-input" type="checkbox" <% if (SetTable.driver) { %>checked="true"><% } %></span>
+             <label for="column-driver" class="th-text-driver"><%_ Driver %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-user" name="user" class="menu-checkbox-input" type="checkbox" <% if (SetTable.user) { %>checked="true"><% } %></span>
+             <label for="column-user" class="th-text-user"><%_ User %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-last-changes" name="lastChanges" class="menu-checkbox-input" type="checkbox" <% if (SetTable.lastChanges) { %>checked="true"><% } %></span>
+             <label for="column-last-changes" class="th-text-last-changes"><%_ Last changes %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-trip-status" name="tripStatus" class="menu-checkbox-input" type="checkbox" <% if (SetTable.tripStatus) { %>checked="true"><% } %></span>
+             <label for="column-trip-status" class="th-span-trip-status"><%_ Trip status %></label>
+         </li>
+         <li>
+             <span class="menu-checkbox-input"><input id="column-notes" name="notes" class="menu-checkbox-input" type="checkbox" <% if (SetTable.notes) { %>checked="true"><% } %></span>
+             <label for="column-notes" class="th-text-notes"><%_ Notes %></label>
+         </li>
+	 </script>
+
+	 <script type="text/template" class="template" id="message">
+         <div id="message-wrap" class="message-wrap <% if (className) { className } %>">
+                <%= message %>
+         </div>
 	 </script>
 
 	 <script type="text/template" class="template" id="print">
@@ -95,20 +193,24 @@
 			 <span><%_ Unit %> '<%= uname %>'</span></br>
 			 <span><%_ From %> <%= tfrom %> <%_ To %> <%= tto %></span></br>
 		   </div>
-		   
+
 		   <table style="border: 1px solid #000;border-collapse: collapse;width: 100%;font-size:8px !important;">
 			 <thead>
 			   <tr>
-				 <th><%_ Beginning %></th>
-				 <th><%_ End %></th>
-				 <th><%_ Duration %></th>
-				 <th><%_ Initial location %></th>
-				 <th><%_ Final location %></th>
-				 <th><%_ Driver %></th>
-				 <th><%_ User %></th>
-				 <th><%_ Last changes %></th>
-				 <th><%_ Trip status %></th>
-				 <th><%_ Notes %></th>
+                 <th>№</th>
+                   <th><%_ Beginning %></th>
+                   <th><%_ End %></th>
+                   <th><%_ Duration %></th>
+                   <th><%_ Initial location %></th>
+                   <th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th>
+                   <th><%_ Final location %></th>
+                   <th><%_ Final mileage %>,&nbsp;<%= metric_m %></th>
+                   <th><%_ Mileage %>,&nbsp;<%= metric_m %></th>
+                   <th><%_ Driver %></th>
+                   <th><%_ User %></th>
+                   <th><%_ Last changes %></th>
+                   <th><%_ Trip status %></th>
+                   <th><%_ Notes %></th>
 			   </tr>
 			 </thead>
 			 <tbody id="print-tbody" style="vertical-align: middle;"><%= content %></tbody>
@@ -119,149 +221,115 @@
 
 	 <script type="text/template" class="template" id="print-row">
 	   <tr>
-		 <td>
-		   <span class="number"><%= data.index %>.</span>
-		   <%= data.time_from %>
-		 </td>
-		 <td><%= data.time_to %></td>
-		 <td><%= data.duration %></td>
-		 <td><%= data.from %></td>
-		 <td><%= data.to %></td>
-		 <td><%= data.driver %></td>
-		 <td><%= data.uname %></td>
-		 <td><%= data.time_change %></td>
-		 <td><%= data.message %></td>	
-		 <td><%= data.note %></td>	
+           <td>
+               <span class="number"><%= data.index %>.</span>
+           </td>
+           <td class="td-date"><%= data.time_from %></td>
+           <td class="td-date"><%= data.time_to %></td>
+           <td><%= data.duration %></td>
+           <td><%= data.fromL %><% if( data.begin.geoZone ){ %>; <i class="geozone"><%= data.begin.geoZone %></i><% }; %></td>
+           <td><%= data.start_odometer %></td>
+           <td><%= data.toL %><% if( data.end.geoZone ){ %>; <i class="geozone"><%= data.end.geoZone %></i><% }; %></td>
+           <td><%= data.end_odometer %></td>
+           <td><%= data.trip_length %></td>
+           <td><%= data.driver %></td>
+           <td><%= data.uname %></td>
+           <td class="td-date"><%= data.time_change %></td>
+           <td><%= data.message %></td>
+           <td><%= data.note %></td>
 	   </tr>
 	 </script>
+
+	 <script type="text/template" class="template" id="ranging-time-tpl">
+         <table id="time-select">
+             <tr>
+                 <td id="time_0" class="time-template"><%_ Yesterday %></td>
+                 <td id="time_1" class="time-template"><%_ Today %></td>
+                 <td id="time_2" class="time-template"><%_ Week %></td>
+                 <td id="time_3" class="time-template"><%_ Month %></td>
+                 <td id="time_4" class="time-template"><%_ Custom %></td>
+                 <td class="time-info">
+                     <div id="time-label" style="display:none;">
+                         <div class="past"></div>
+                         <span></span>
+                         <div class="future"></div>
+                     </div>
+                 </td>
+             </tr>
+         </table>
+         <div id="timepickers">
+             <input type="input" class="datetime" id="date-from"/>&nbsp;<input type="input" class="datetime" id="date-to"/>
+             <!--<a href="#" id="change-time-btn">Ok</a>-->
+         </div>
+	 </script>
 	 <!-- END: Underscore Template Definition. -->
-	
+
 	<div id="header">
-	  <img id="logo" style="float: left;"src="img/logo.png"/>
-	  <div id="logo-title" class="title">Delivery service</div>
-	  <div class="clear"></div>
+        <div class="container">
+            <img id="logo" style="float: left;"src="img/logo.png"/>
+            <div id="logo-title" class="title">Driving Logbook</div>
+            <div class="clear"></div>
+        </div>
+        <div id="loading"></div>
 	</div>
 
 	<div style="top: 70px; left: 0px; width: 100%;">
-	  <div id="data-inputs">
-		<span id= "unit-text-span" class="input-title"></span>
-		<span><select class="input-select" id="units-select" style="width: 200px;"></select></span>
-		<span id="from-text-span" class="input-title" style="margin-left: 10px;"></span>
-		<span><input type="text" id="date-from"></span>
-		<span id="to-text-span" class="input-title" style="margin-left: 3px;"></span>
-		<span><input type="text" id="date-to"></span>
-		<span><input id="execute-btn" type="button" class="btn" value=""/></span>
-	  </div>
+        <div class="container">
+          <div id="data-inputs" class="clearfix">
+            <div class="pull-left">
+                <select class="input-select" id="units-select" style="width: 200px;"></select>
+            </div>
+            <div id="ranging-time-wrap" class="ranging-time-wrap pull-left">
+                <!-- template: ranging-time-tpl -->
+            </div>
+            <div class="pull-left">
+                <span><input id="execute-btn" type="button" class="btn" value=""/></span>
+            </div>
+            <div class="pull-right">
+              <div>
+                  <input id="print-btn" type="button" class="btn" value="Печать">
+              </div>
+            </div>
+          </div>
 
-	  <div class="separator"></div>
+          <div class="separator"></div>
 
-	  <div id="table-wrap">
-		<table id="paginated-table" class="ptable">
-		  <thead>
-			<tr>
-			  <th id="th-text-beginning" scope="col"></th>
-			  <th id="th-text-end" scope="col"></th>
-			  <th id="th-text-duration" scope="col"></th>
-			  <th id="th-text-init-location" scope="col" class="no-wrap"></th>
-			  <th id="th-text-final-location" scope="col" class="no-wrap"></th>
-			  <th id="th-text-driver" scope="col"></th>
-			  <th id="th-text-user" scope="col"></th>
-			  <th id="th-text-last-changes" scope="col" class="no-wrap"></th>
-			  <th scope="col" class="cell-table-input">
-				<span id="th-span-trip-status"></span>
-				<span>
-				  <select id="all-type-for-trip" class="input-select">
-					<option value="0"></option>
-					<option value="1">Business</option>
-					<option value="2">Personal</option>
-				</select>
-				</span>
-			  </th>
-			  <th id="th-text-notes" scope="col"></th>
-			</tr>
-		  </thead>
-		  <tbody></tbody>
-		</table>
-	  </div>
-	</div>
-	
-	<div class="table-footer">
-	  <div id="table-instruments" style="margin-left: 28px;">
-		<span>
-		  <select id="nrowonpage" class="input-select">
-			<option value="10">10</option>
-			<option value="25">25</option>
-			<option value="50">50</option>
-			<option value="100">100</option>
-		  </select>
-		</span>
+          <div id="table-wrap">
+              <div class="expand-menu-wrap" id="select-table-columns-wrap">
+                  <a id="select-table-columns" href="#"></a>
+                  <ul id="select-table-columns-list" class="expand-menu">
+                      <!-- template: select-table-columns-list-tpl -->
+                  </ul>
+              </div>
 
-		<div class="vseparator"></div>
+              <select id="nrowonpage" class="input-select">
+                  <option value="10">10</option>
+                  <option value="25">25</option>
+                  <option value="50">50</option>
+                  <option value="100">100</option>
+              </select>
 
-		<div id="top" class="pfirst pbtn">
-		  <span></span>
-		</div>
-		
-		<div id="prev" class="pprev pbtn">
-		  <span></span>
-		</div>
-
-		<div class="pgroup">
-		  <span class="pcontrol">
-			<table>
-			  <tbody>
-				<tr>
-				  <td style="vertical-align: middle;">
-					<b id="page" style="font-weight:normal;"></b>
-				  </td>
-				  <td style="vertical-align: middle; padding-left: 2px; padding-right: 2px;">
-					<input type="text" id="page_selector" size="4" value="1" alt="">
-				  </td>
-				  <td style="vertical-align: middle;">
-					<b id="of" style="font-weight:normal;"></b>
-					<span id="cpages">0</span>
-				  </td>
-				</tr>
-			  </tbody>
-			</table>
-		  </span>
-		</div>
-
-		<div id="next" class="pnext pbtn">
-		  <span></span>
-		</div>
-
-		<div id="last" class="plast pbtn">
-		  <span></span>
-		</div>
-		
-		<div class="vseparator"></div>
-
-		<div class="pgroup">
-		  <div class="pgroup">
-			<table>
-			  <tbody>
-				<tr>
-				  <td style="vertical-align: middle; padding-left: 2px; padding-right: 2px;">
-					<span id="pagestat"></span>
-				  </td>
-				</tr>
-			  </tbody>
-			</table>
-		  </div>
-		</div>
-		
-		<div>
-		  <div class="pgroup" style="">
-			<input id="apply-btn" type="button" class="btn" value="Apply"/>
-		  </div>
-		  <div class="pgroup">
-			<input id="print-btn" type="image" src="./img/print.png" class="print" value="" />
-		  </div>
-		</div>
-
-		<div class="clear"></div>
+              <table id="paginated-table" class="ptable">
+              <thead>
+              <!-- template: th-row -->
+              </thead>
+              <tbody></tbody>
+            </table>
+          </div>
 	  </div>
 	</div>
+    <div class="container">
+        <div class="table-footer">
+            <div id="table-instruments" class="clearfix">
+                <div class="pgroup pull-right">
+                    <i id="pagestat"></i>
+                </div>
+                <div class="pgroup-btn-wrap footer-center pull-right ">
+                    <input id="top" type="button" class="btn" value=""><input id="prev" type="button" class="btn" value=""><span id="pcontrol" class="pcontrol">
+                    </span><input id="next" type="button" class="btn" value=""><input id="last" type="button" class="btn" value="">
+                </div>
+            </div>
+        </div>
+    </div>
   </body>
 </html>

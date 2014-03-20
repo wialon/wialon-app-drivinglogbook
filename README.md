@@ -1,4 +1,4 @@
-# Driver Logbook, version 1.4: (July 4, 2013)
+# Driver Logbook, version 1.5: (March 18, 2014)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
 ## Description:
@@ -31,3 +31,7 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
 
  * v1.4 (July 4, 2013)
 - Fixed problems in IE
+
+ * v1.5 (March 18, 2014)
+- Add US metric.
+- Expanded information about trips
