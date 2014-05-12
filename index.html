@@ -62,10 +62,12 @@
              <% if (SetTable.lastChanges) { %><th><%_ Last changes %></th><% } %>
              <% if (SetTable.tripStatus) { %>
                  <th scope="col" class="cell-table-input">
-                    <span class="th-trip-status"><%_ Trip status %></span>
+                     <% if (LANG != 'de') { %>
+                            <span class="th-trip-status"><%_ Trip status %></span>
+                     <% } %>
                     <span>
-                      <select id="all-type-for-trip" class="all-type-for-trip input-select">
-                          <option value="0"></option>
+                      <select id="all-type-for-trip" class="all-type-for-trip input-select <% if (LANG == 'de') { %>text-in-select<% } %>">
+                          <option value="0"><% if (LANG == 'de') { %><%_ Trip status %><% } %></option>
                           <option value="1">Business</option>
                           <option value="2">Personal</option>
                       </select>

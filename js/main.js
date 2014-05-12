@@ -41,6 +41,8 @@ function exec_callback(id) {
 	var gdh = [];
 	///
 	var LANG = "";
+	/// save object of localization massive
+	var Locale = "";
 	///
 	var resources = [];
 	/// Time format
@@ -75,6 +77,7 @@ function exec_callback(id) {
         time_type: 0
     };
     var changeTimeTimeout;
+    var address_format;
 
 	/// IE check
 	function ie() {
@@ -190,6 +193,8 @@ function exec_callback(id) {
                 }
             });
 
+            address_format = wialon.core.Session.getInstance().getCurrUser().getCustomProperty("us_addr_fmt", "");
+
             var flagZones =  wialon.item.Item.dataFlag.base | wialon.item.Resource.dataFlag.zones;
             wialon.core.Session.getInstance().updateDataFlags([{type: "type", data: "avl_resource", flags: flagZones, mode: 0}], function(code){
                 zones_res = wialon.core.Session.getInstance().getItems("avl_resource");
@@ -244,7 +249,10 @@ function exec_callback(id) {
 
                 // run after load all data:
                 en_format_time = wialon.util.DateTime.convertFormat(fd,true).replace(/_/, '<br>').replace(/ /, '&nbsp;');
-                setLocaleDateTime();
+
+                Locale = getLocale();
+                wialon.util.DateTime.setLocale(Locale.days, Locale.months, Locale.days_abbrev, Locale.months_abbrev);
+
                 fill_units_select(items);
                 ltranlate(items[0]);
                 renderStaticTpl();
@@ -373,7 +381,7 @@ function exec_callback(id) {
         // IMPORTANT: fixed order in the string
         var c ="time_begin,time_end,duration_ival,location_begin,absolute_mileage_begin,location_end,absolute_mileage_end,driver,mileage,mileage";
         var template = {// fill template object
-            "id": 0,
+            "id": 0, //wialon.core.Session.getInstance().getCurrUser().getId(),
             "n": "unit_trips",
             "ct": "avl_unit",
             "p": "",
@@ -382,9 +390,27 @@ function exec_callback(id) {
                 "l": "Trips",
                 "c": c,
                 "cl": c,
-                "s": "",
+                "s": "address_format",
                 "sl": "",
-                "p": "",
+                "p": JSON.stringify({address_format: address_format}),
+                "sch": {
+                    "f1": 0,
+                    "f2": 0,
+                    "t1": 0,
+                    "t2": 0,
+                    "m": 0,
+                    "y": 0,
+                    "w": 0
+                },
+                "f": 0
+            },{
+                "n": "unit_stats",
+                "l": "Trips",
+                "c": c,
+                "cl": c,
+                "s": "address_format",
+                "sl": "",
+                "p": JSON.stringify({address_format: address_format}),
                 "sch": {
                     "f1": 0,
                     "f2": 0,
@@ -397,7 +423,6 @@ function exec_callback(id) {
                 "f": 0
             }]
         };
-
         // get messages info
         unit.getTrips(times[0], times[1], 1, qx.lang.Function.bind(function (times, unit, code, trips) {
             $('#message-wrap').remove();
@@ -474,8 +499,8 @@ function exec_callback(id) {
                     absolute_mileage: c[6],
                     geoZone: getGeoZone({lon: c[1].x, lat: c[1].y})
                 },
-                time_from: wialon.util.DateTime.formatTime(c[0].v, 0, en_format_time),
-                time_to: wialon.util.DateTime.formatTime(c[1].v, 0, en_format_time),
+                time_from: getTimeStr(c[0].v),
+                time_to: getTimeStr(c[1].v),
                 duration:  c[2],//get_time_string(c[1].v - c[0].v),
                 fromL:  (c[3].t) ? c[3].t : '---',
                 toL: (c[5].t) ? c[5].t : '---',
@@ -645,7 +670,7 @@ function exec_callback(id) {
                              trip['unote'] = null;
 
                              trip['uname'] = (trip['message'] && trip['message']['p'] && trip['message']['p']['un']) ? trip['message']['p']['un'] : '---';
-                             var time = wialon.util.DateTime.formatTime( parseInt(trip['message'] && trip['message']['p'] && trip['message']['p']['tc']), 0, en_format_time);
+                             var time = getTimeStr( parseInt(trip['message'] && trip['message']['p'] && trip['message']['p']['tc']));
                              trip['time_change'] = (time) ? time : '---';
                          }
 
@@ -917,6 +942,7 @@ function exec_callback(id) {
         var t = underi18n.MessageFactory(TRANSLATIONS);
         $('#paginated-table thead').html( _.template(underi18n.template($('#th-row').html(), t), {
             SetTable: SetTable,
+            LANG: LANG,
             metric_m: ( (getMeasureUnits({unit:unit})) ? $.localise.tr("mi") : $.localise.tr("km"))
         }) );
         // add list
@@ -964,8 +990,9 @@ function exec_callback(id) {
         return metric; // default return metric of units;
     }
     /// set Locale Date Time
-    function setLocaleDateTime () {
-        var days = [
+    function getLocale () {
+        return {
+            days: [
                 $.localise.tr("Sunday"),
                 $.localise.tr("Monday"),
                 $.localise.tr("Tuesday"),
@@ -974,7 +1001,7 @@ function exec_callback(id) {
                 $.localise.tr("Friday"),
                 $.localise.tr("Saturday")
             ],
-            months = [
+            months: [
                 $.localise.tr("January"),
                 $.localise.tr("February"),
                 $.localise.tr("March"),
@@ -988,7 +1015,7 @@ function exec_callback(id) {
                 $.localise.tr("November"),
                 $.localise.tr("December")
             ],
-            days_abbrev = [
+            days_abbrev: [
                 $.localise.tr("Sun"),
                 $.localise.tr("Mon"),
                 $.localise.tr("Tue"),
@@ -997,7 +1024,7 @@ function exec_callback(id) {
                 $.localise.tr("Fri"),
                 $.localise.tr("Sat")
             ],
-            months_abbrev = [
+            months_abbrev: [
                 $.localise.tr("Jan"),
                 $.localise.tr("Feb"),
                 $.localise.tr("Mar"),
@@ -1010,16 +1037,23 @@ function exec_callback(id) {
                 $.localise.tr("Oct"),
                 $.localise.tr("Nov"),
                 $.localise.tr("Dec")
-            ];
-        wialon.util.DateTime.setLocale(days, months, days_abbrev, months_abbrev);
+            ]
+        }
+    }
+    /// set Locale Date Time
+    function setLocaleDateTime () {
+        wialon.util.DateTime.setLocale(Locale.days, Locale.months, Locale.days_abbrev, Locale.months_abbrev);
     }
 
     /// init initDatepicker
-    function initDatepicker(firstDay, dateFormat) {
+    function initDatepicker(firstDay, setDateFormat) {
+
+        var d  = setDateFormat.split('_')[0];
+        var df = getAdaptedDateFormat( d );
 
         var settings = {
             firstDay: firstDay,
-            dateFormat: "dd.mm.yy" // hard set tpl for data
+            dateFormat: df
         };
 
 
@@ -1028,15 +1062,13 @@ function exec_callback(id) {
             prevText: '&#x3c;Пред',
             nextText: 'След&#x3e;',
             currentText: 'Сегодня',
-            monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь',
-                'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
-            monthNamesShort: ['Янв','Фев','Мар','Апр','Май','Июн',
-                'Июл','Авг','Сен','Окт','Ноя','Дек'],
+            monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
+            monthNamesShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
             dayNames: ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'],
             dayNamesShort: ['вск','пнд','втр','срд','чтв','птн','сбт'],
             dayNamesMin: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
             weekHeader: 'Не',
-            dateFormat: 'dd.mm.yy',
+            dateFormat: "yyyy-MM-dd",
             firstDay: 1,
             isRTL: false,
             showMonthAfterYear: false,
@@ -1045,6 +1077,15 @@ function exec_callback(id) {
         
         $("#date-from").datepicker( settings );
         $("#date-to").datepicker( settings );
+    }
+    /// set Date
+    function setDateToDatepicker(from, to){
+        if (from) {
+            $("#date-from").datepicker( "option", "defaultDate", from ).datepicker( "setDate", from);
+        }
+        if (to) {
+            $("#date-to").datepicker( "option", "defaultDate", to ).datepicker( "setDate", to);
+        }
     }
     /// print
     function print(){
@@ -1091,8 +1132,8 @@ function exec_callback(id) {
         var content = template({content: tcontent,
             uname: cunit.getName(),
             metric_m: (getMeasureUnits({unit: cunit}))? $.localise.tr("mi") : $.localise.tr("km"),
-            tfrom: wialon.util.DateTime.formatTime(tfrom, 0, tf),
-            tto: wialon.util.DateTime.formatTime(tto, 0, tf),
+            tfrom: getTimeStr(tfrom, tf),
+            tto:getTimeStr(tto, tf),
             SetTable: SetTable
         });
 
@@ -1191,7 +1232,7 @@ function exec_callback(id) {
         });
         // add event for autosetting attribute
         $("#all-type-for-trip").live('change', function() {
-            var text = $(this).children("option:selected").text();
+            var text = ($(this).val() != 0 ) ? $(this).children("option:selected").text() : '';
             for (var i=0, len=ctrips.length; i<len; i++) {
                 if (!ctrips[i]) {
                     continue;
@@ -1365,9 +1406,7 @@ function exec_callback(id) {
             }
 
             if (parseInt(tt.getTime() / 1000, 10) != interval[0] || parseInt(tnow.getTime() / 1000, 10) != interval[1]) {
-                $("#date-from").datepicker( "setDate", tt);
-                $("#date-to").datepicker( "setDate", tnow);
-
+                setDateToDatepicker(tt, tnow);
                 LOCAL_STATE.time_from = parseInt(tt.getTime() / 1000, 10);
                 LOCAL_STATE.time_to = parseInt(tnow.getTime() / 1000, 10);
             }
@@ -1385,8 +1424,8 @@ function exec_callback(id) {
             LOCAL_STATE.time_from = LOCAL_STATE.time_custom[0];
             LOCAL_STATE.time_to = LOCAL_STATE.time_custom[1];
             $('#execute-btn').show();
-            $("#date-from").datepicker("setDate", new Date(LOCAL_STATE.time_from * 1000));
-            $("#date-to").datepicker("setDate", new Date(LOCAL_STATE.time_to * 1000));
+
+            setDateToDatepicker(new Date(LOCAL_STATE.time_from * 1000), new Date(LOCAL_STATE.time_to * 1000));
         }
         activateTimeTemplate(value);
     }
@@ -1423,14 +1462,16 @@ function exec_callback(id) {
                 t2 = (future ? t2.getTime()-1000 : (interval[0] - 1)*1000);
                 break;
         }
+        var t1 = new Date(t1);
+        var t2 = new Date(t2);
+        setDateToDatepicker(t1, t2);
 
-        t1 = new Date(t1);
-        t2 = new Date(t2);
 
-        $("#date-from").datepicker("setDate", t1);
-        $("#date-to").datepicker("setDate", t2);
+        var tf = en_format_time.split('<br>')[0];
+        var label = getTimeStr(Math.floor($("#date-from").datepicker('getDate').getTime() / 1000), tf);
+        label += (time_type>1) ? ' &ndash; ' + getTimeStr(Math.floor($("#date-to").datepicker('getDate').getTime() / 1000), tf) : '';
 
-        var label = $("#date-from").val().split(" ")[0] + (time_type>1 ? " - " + $("#date-to").val().split(" ")[0] : "");
+//        var label = $("#date-from").val().split(" ")[0] + (time_type>1 ? " - " + $("#date-to").val().split(" ")[0] : "");
         $("#time-label").children("span").html(label);
 
         LOCAL_STATE.time_from = parseInt(t1.getTime()/1000, 10);
@@ -1470,7 +1511,10 @@ function exec_callback(id) {
             obj.addClass("active");
         }
 
-        var label = $("#date-from").val().split(" ")[0] + (value>1 ? " &ndash; " + $("#date-to").val().split(" ")[0] : "");
+        var tf = en_format_time.split('<br>')[0];
+        var label = getTimeStr(Math.floor($("#date-from").datepicker('getDate').getTime() / 1000), tf);
+        label += (value>1) ? ' &ndash; ' + getTimeStr(Math.floor($("#date-to").datepicker('getDate').getTime() / 1000), tf) : '';
+
         if (value < 4) {
             $("#timepickers").hide();
             $("#time-label").show().children("span").html(label);
@@ -1562,7 +1606,7 @@ function exec_callback(id) {
                         item.closest('td').siblings('.uname-wrap').html( mes['un'] );
                     }
                     if (mes['tc']) {
-                        var time = wialon.util.DateTime.formatTime( parseInt(mes['tc']), 0, en_format_time);
+                        var time = getTimeStr( parseInt(mes['tc']));
                         item.closest('td').siblings('.time_change-wrap').html( time );
                     }
                     // error save date from input
@@ -1578,6 +1622,40 @@ function exec_callback(id) {
 
 
     }
+    /// return date str
+    function getTimeStr(time, tf){
+        var format_time = (tf) ? tf : ( (en_format_time == '') ? "yyyy-MM-dd HH:mm" : en_format_time );
+        return wialon.util.DateTime.formatTime(time, 0, format_time);
+    }
+    /// adapter dateFormat for datetimepicker
+    function getAdaptedDateFormat(date){
+
+        var s = date.replace(/(%\w)|_|%%/g, function(str){
+            switch (str) {
+                case "%Y": return 'yy';
+                case "%y": return 'y';
+                // month
+                case "%B": return 'MM';   // MM - month name long
+                case "%b": return 'M';    // M - month name short
+                case "%m": return 'mm';   // mm - month of year (two digit)
+                case "%l": return 'm';    // m - month of year (no leading zero)
+                // day
+                case "%A": return 'DD';   // DD - day name long
+                case "%a": return 'D';    // D - day name short
+                case "%E": return 'dd';   // dd - (two digit)
+                case "%e": return 'd';    // d - (no leading zero)
+                // for time format:
+                case "%H": return 'HH';   // 24h
+                case "%I": return 'hh';   // 12h
+                case "%p": return 'TT';   // AM/PM
+                case "%M": return 'mm';
+                default: return '';
+            }
+        });
+
+        return s;
+    }
+
     /// A function to execute after the DOM is ready.
 	$(document).ready(function () {
 		disabletableui();
@@ -1592,8 +1670,8 @@ function exec_callback(id) {
         $('#execute-btn').hide();
 		
 		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru"]) == -1))
-			LANG = "en"
+		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de"]) == -1))
+			LANG = "en";
 		$.localise('lang/', {language: LANG});
 		
 		url += "/wsdk/script/wialon.js" ;

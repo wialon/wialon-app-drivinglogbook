@@ -215,6 +215,9 @@
 		/*width: 100px;*/
 		width: 85px;
 	}
+    #all-type-for-trip.text-in-select {
+        width: 130px;
+    }
 /*
 	.number {
 		color: #717171;

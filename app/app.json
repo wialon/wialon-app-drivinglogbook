@@ -2,7 +2,7 @@
 	"name": "driving_logbook",
 	"url_name": "drivinglogbook",
 	"title": "Driving Logbook",
-	"description": "Allows requesting report for unit's trips with an opportunity of adjusting trip status and making user's notes",
+	"description": "Driving Logbook is an application to prepare tax reports determining actual use of the company car for private or business purposes.",
 	"author": {
 		"name": "Alexander Chernetsky",
 		"url": "http://gurtam.com"
@@ -29,15 +29,16 @@
 		"Base URL",
 		"Host URL",
 		"Language",
-		"Current user"
+        "Current user"
 	],
 	"language": [
 		"en",
-		"ru"
+		"ru",
+		"de"
 	],
-	"build_date": "2014-03-20",
+	"build_date": "2014-05-12",
 	"release_date": "2013-01-27",
-	"version": "1.5",
+	"version": "1.6",
 	"keywords": [
 		"wialon",
 		"wialon-apps",
