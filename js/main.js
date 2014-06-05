@@ -408,7 +408,7 @@ function exec_callback(id) {
                 "l": "Trips",
                 "c": c,
                 "cl": c,
-                "s": "address_format",
+                "s": "precise_calculations,address_format",
                 "sl": "",
                 "p": JSON.stringify({address_format: address_format}),
                 "sch": {
@@ -981,9 +981,13 @@ function exec_callback(id) {
         if (settings.s) {
             return (metric) ? Math.round( parseInt(settings.s) / 1.609344) : parseInt(settings.s);
         }
-        if (settings.l) {
-            return (metric) ? Math.round( parseInt(settings.l) * 0.6214) : parseInt(settings.l);
-        }
+		if (settings.l) {
+			var res = parseFloat(settings.l);
+			if (metric) {
+				res *= 0.6214;
+			}
+			return res.toFixed(2);
+		}
         if (settings.h) {
             return (metric) ? Math.round( parseInt(settings.h) / 3.2808) : parseInt(settings.h);
         }
