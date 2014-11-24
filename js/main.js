@@ -623,8 +623,8 @@ function exec_callback(id) {
 	function load_messages (unit, times, trips, isrefresh, input) {
         if (!isrefresh) disableui();
 		cmessages = []; // update global variable
-		textbox_items = ["Business", "Personal"];
-
+		textbox_items = [$.localise.tr("Business"), $.localise.tr("Personal")];
+        
 		// Unload previous loaded messages
 		mloader.unload(qx.lang.Function.bind(function (unit, times, trips, code) {
 			if (code !== 0) {
@@ -676,12 +676,8 @@ function exec_callback(id) {
 
                          for (var messInd=0, len=cmessages.length; messInd<len; messInd++) {
                              var mes = cmessages[messInd];
-                             for (var trInd=0, tlen=trips.length; trInd<tlen; trInd++) {
-                                 var trip = trips[trInd];
-                                 if (mes['p'] && mes['p']['ui_text']) {
-                                     textbox_items.push(mes['p']['ui_text']);
-                                 }
-                                 break;
+                             if (mes['p'] && mes['p']['ui_text']) {
+                                 textbox_items.push(mes['p']['ui_text']);
                              }
                          }
                      }
@@ -802,7 +798,7 @@ function exec_callback(id) {
 				oparams['nt'] = note; // user note
 			// Deleted previos messages
 			cunit.registryStatusEvent(date, trip['uinput'], oparams, qx.lang.Function.bind(function (tripReg, code) {
-				if (code === 0 && tripReg['message']) {
+                if (code === 0 && tripReg['message']) {
                     mloader.deleteMessage(tripReg['message']['index'], function (code) {
                         if (code === 0) {
                             tripReg['uinput'] = null;
@@ -1674,7 +1670,7 @@ function exec_callback(id) {
         $('#execute-btn').hide();
 		
 		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk"]) == -1))
+		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cz"]) == -1))
 			LANG = "en";
 		$.localise('lang/', {language: LANG});
 		
