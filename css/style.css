@@ -996,7 +996,6 @@
     }
     .footer-center > * {
         display: inline-block;
-        float: left;
         height: 100%;
     }
     .footer-center .textboxcontainer input {
@@ -1025,7 +1024,10 @@
     #next-page {display: none;}
     #prev-page.visible,
     #next-page.visible {display: inline-block;}
-    .pcontrol {display: inline-block;}
+    .pcontrol {
+        display: inline-block;
+        vertical-align: top;
+    }
 
     .message-wrap {
         position: absolute;

@@ -152,7 +152,7 @@ function exec_callback(id) {
 			alert($.localise.tr("Login error."));
 			return;
 		}
-		
+
 		disableui();
 		wialon.core.Session.getInstance().loadLibrary("resourceDrivers");
 		wialon.core.Session.getInstance().loadLibrary("unitTripDetector");
@@ -342,7 +342,7 @@ function exec_callback(id) {
 			return;
 		}
 		cunit = unit;
-		
+
 		disableui();
         $('#loading').addClass('show'); // show loading line
 
@@ -355,8 +355,8 @@ function exec_callback(id) {
         flagExistChangeSet = false;
 		ctimes = times; // stores current worker time in global variable
         var flag =  wialon.item.Item.messageFlag.typeUnitData;
-		mloader.loadInterval(unit.getId(), times[0], times[1],  flag, wialon.item.Item.messageFlag.typeMask, 0xFFFFFFFF, qx.lang.Function.bind(function (unit, times, code, messages) {
-			if (code === 0 && messages) {
+		mloader.loadInterval(unit.getId(), times[0], times[1],  flag, wialon.item.Item.messageFlag.typeMask, 0, qx.lang.Function.bind(function (unit, times, code) {
+			if (code === 0) {
                 $('#message-wrap').remove();
                 ltranlate(unit);
 				load_trips(unit, times);
@@ -559,15 +559,15 @@ function exec_callback(id) {
 				continue;
 			}
 
-			var start = tempb['t'], end = 0xFFFFFFFF;			
+			var start = tempb['t'], end = 0xFFFFFFFF;
 			var next = i + 1;
 			if (next < len) {
 				var temp = dh[next];
 				if (temp['u'] === 0) {
 					i++;
 				}
-				end = temp['t'];				
-			}			
+				end = temp['t'];
+			}
 			result.push({tb: start, tub: end, did: tempb['did']});
 		}
 		return result;
@@ -591,9 +591,9 @@ function exec_callback(id) {
 						for (var j=0, dlen=hdriver.length; j<dlen; j++) {
 							hdriver[j]['did'] = rid + "_" + did;
 							gdh.push(hdriver[j]);
-						}					
+						}
 					}
-				} 
+				}
 			}, this, resource));
 		}
 
@@ -624,7 +624,7 @@ function exec_callback(id) {
         if (!isrefresh) disableui();
 		cmessages = []; // update global variable
 		textbox_items = [$.localise.tr("Business"), $.localise.tr("Personal")];
-        
+
 		// Unload previous loaded messages
 		mloader.unload(qx.lang.Function.bind(function (unit, times, trips, code) {
 			if (code !== 0) {
@@ -666,7 +666,7 @@ function exec_callback(id) {
                          // add data of message to trip
                          for (var j=0, tlen=trips.length ; j<tlen; j++) {
                              var trip = trips[j];
-                             trip['uniput'] = null;
+                             trip['uinput'] = null;
                              trip['unote'] = null;
 
                              trip['uname'] = (trip['message'] && trip['message']['p'] && trip['message']['p']['un']) ? trip['message']['p']['un'] : '---';
@@ -884,7 +884,7 @@ function exec_callback(id) {
 	}
 	/// Undisabled ui
 	function undisableui () {
-		try { $("#table-wrap").activity(false); } catch (e) {} 
+		try { $("#table-wrap").activity(false); } catch (e) {}
 		$("#execute-btn").removeAttr("disabled");
         $('#select-table-columns-wrap').appendTo( $('#expand-menu') );
         $('#nrowonpage').appendTo( $('#nrowonpage-wrap') );
@@ -956,7 +956,7 @@ function exec_callback(id) {
 				isless = true;
 			} else {
 				$("#table-wrap").height(nheight);
-			}				
+			}
 		}
 
 		if (e !== null || isless) {
@@ -1074,7 +1074,7 @@ function exec_callback(id) {
             showMonthAfterYear: false,
             yearSuffix: ''};
         $.datepicker.setDefaults($.datepicker.regional[LANG]);
-        
+
         $("#date-from").datepicker( settings );
         $("#date-to").datepicker( settings );
     }
@@ -1668,12 +1668,12 @@ function exec_callback(id) {
 		}
 
         $('#execute-btn').hide();
-		
+
 		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cz"]) == -1))
+		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs"]) == -1))
 			LANG = "en";
 		$.localise('lang/', {language: LANG});
-		
+
 		url += "/wsdk/script/wialon.js" ;
 		load_script(url, init_sdk);
 
