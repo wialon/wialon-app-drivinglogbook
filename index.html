@@ -41,8 +41,10 @@
 	
 	<script src="./js/jquery.textbox.js"></script>
 	<script src="./js/table.js"></script>
+	<link rel="stylesheet" type="text/css" href="//apps.wialon.com/plugins/wialon/interval/interval.wialon.css"/>
 	<script src="./js/main.js"></script>
 	<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
+	<script src="//apps.wialon.com/plugins/wialon/interval/interval.wialon.js"></script>
   </head>
   <body>
 	 <!-- BEGIN: Underscore Template Definition. See: http://underscorejs.org/#template. -->
@@ -243,26 +245,24 @@
 	 </script>
 
 	 <script type="text/template" class="template" id="ranging-time-tpl">
-         <table id="time-select">
-             <tr>
-                 <td id="time_0" class="time-template"><%_ Yesterday %></td>
-                 <td id="time_1" class="time-template"><%_ Today %></td>
-                 <td id="time_2" class="time-template"><%_ Week %></td>
-                 <td id="time_3" class="time-template"><%_ Month %></td>
-                 <td id="time_4" class="time-template"><%_ Custom %></td>
-                 <td class="time-info">
-                     <div id="time-label" style="display:none;">
-                         <div class="past"></div>
-                         <span></span>
-                         <div class="future"></div>
-                     </div>
-                 </td>
-             </tr>
-         </table>
-         <div id="timepickers">
-             <input type="input" class="datetime" id="date-from"/>&nbsp;<input type="input" class="datetime" id="date-to"/>
-             <!--<a href="#" id="change-time-btn">Ok</a>-->
-         </div>
+    <div class="interval-wialon {className}" id="{id}">
+      <div class="iw-select">
+        <button data-period="0" type="button" class="iw-period-btn period_0">{yesterday}</button>
+        <button data-period="1" type="button" class="iw-period-btn period_1">{today}</button>
+        <button data-period="2" type="button" class="iw-period-btn period_2">{week}</button>
+        <button data-period="3" type="button" class="iw-period-btn period_3">{month}</button>
+        <button data-period="4" type="button" class="iw-period-btn period_4">{custom}</button>
+      </div>
+      <div class="iw-pickers">
+        <input type="text" class="iw-from" id="date-from" /> &ndash; <input type="text" class="iw-to" id="date-to" />
+        <button type="button" class="iw-time-btn">{ok}</button>
+      </div>
+      <div class="iw-labels">
+        <a href="#" class="iw-similar-btn past" data-similar="past"></a>
+        <span class="iw-label"></span>
+        <a href="#" class="iw-similar-btn future" data-similar="future"></a>
+      </div>
+    </div>
 	 </script>
 	 <!-- END: Underscore Template Definition. -->
 

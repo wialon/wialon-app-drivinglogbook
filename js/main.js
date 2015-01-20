@@ -189,6 +189,7 @@ function exec_callback(id) {
 
                 initDatepickerOpt = {
                     wd: (locale && locale.wd && locale.wd > 1) ? 0 : 1,
+                    wd_orig: locale.wd,
                     fd: fd
                 }
             });
@@ -256,26 +257,8 @@ function exec_callback(id) {
                 fill_units_select(items);
                 ltranlate(items[0]);
                 renderStaticTpl();
-                initDatepicker( initDatepickerOpt.wd, initDatepickerOpt.fd );
+                initDatepicker( initDatepickerOpt.wd, initDatepickerOpt.fd, initDatepickerOpt.wd_orig);
                 addEventsListeners();
-
-
-
-                var server_time = wialon.core.Session.getInstance().getServerTime();
-                TZ = wialon.util.DateTime.getTimezoneOffset();
-                DST = wialon.util.DateTime.getDSTOffset(server_time);
-                var tt = new Date(get_user_time(server_time, TZ, DST)*1000);
-                tt.setHours(0);
-                tt.setMinutes(0);
-                tt.setSeconds(0);
-                tt.setMilliseconds(0);
-                var tnow = new Date(tt);
-                tnow.setSeconds(tnow.getSeconds() + 86399);
-
-                TODAY.from = tt.getTime() /1000 | 0;
-                TODAY.to = tnow.getTime() /1000 | 0;
-
-                changeTime(0);
 
                 $("#execute-btn").removeAttr("disabled");
 
@@ -297,7 +280,16 @@ function exec_callback(id) {
         user = (user) ? user : "";
 
 		wialon.core.Session.getInstance().initSession(url, undefined, 0x800, undefined);
-		wialon.core.Session.getInstance().duplicate(get_html_var("sid"), user, true, login);
+
+		var sid = get_html_var("sid");
+		var authHash = get_html_var("authHash");
+
+		if (authHash) {
+			wialon.core.Session.getInstance().loginAuthHash(authHash, login);
+		} else if (sid) {
+			wialon.core.Session.getInstance().duplicate(sid, user, true, login);
+		}
+
 		mloader = wialon.core.Session.getInstance().getMessagesLoader();
 	}
 	///
@@ -346,7 +338,8 @@ function exec_callback(id) {
 		disableui();
         $('#loading').addClass('show'); // show loading line
 
-		var times = getTimeFromInput();
+        // var times = getTimeFromInput();
+		var times = $("#ranging-time-wrap").intervalWialon('get');
 		if (!times) {
 			alert($.localise.tr("Please select time interval."));
 			return;
@@ -928,9 +921,23 @@ function exec_callback(id) {
 
         $("#print-btn").val($.localise.tr("Print"));
 
-        var t = underi18n.MessageFactory(TRANSLATIONS);
+        // var t = underi18n.MessageFactory(TRANSLATIONS);
         // add tab for datetimepiker
-        $('#ranging-time-wrap').html( _.template(underi18n.template($('#ranging-time-tpl').html(), t)) );
+        // $('#ranging-time-wrap').html( _.template(underi18n.template($('#ranging-time-tpl').html(), t)) );
+        var LANG = get_html_var('lang') || 'en';
+        var loc = getLocale();
+        $.datepicker.regional[LANG] = {
+            prevText: TRANSLATIONS['Prev'],
+            nextText: TRANSLATIONS['Next'],
+            currentText: TRANSLATIONS['Today'],
+            monthNames: loc.months,
+            monthNamesShort: loc.months_abbrev,
+            dayNames: loc.days,
+            dayNamesShort: loc.days_abbrev,
+            dayNamesMin: loc.days_abbrev,
+        };
+        $.datepicker.setDefaults($.datepicker.regional[LANG]);
+        // var t = underi18n.MessageFactory(TRANSLATIONS);
     }
 	///
 	function ltranlate (unit) {
@@ -1046,37 +1053,35 @@ function exec_callback(id) {
     }
 
     /// init initDatepicker
-    function initDatepicker(firstDay, setDateFormat) {
-
-        var d  = setDateFormat.split('_')[0];
-        var df = getAdaptedDateFormat( d );
-
-        var settings = {
-            firstDay: firstDay,
-            dateFormat: df
+    function initDatepicker(firstDay, setDateFormat, firstDayOrig) {
+        var options = {
+            template: $('#ranging-time-tpl').html(),
+             labels: {
+                yesterday: $.localise.tr("Yesterday"),
+                today: $.localise.tr("Today"),
+                week: $.localise.tr("Week"),
+                month: $.localise.tr("Month"),
+                custom: $.localise.tr("Custom"),
+                ok: "OK"
+            },
+            datepicker: {},
+            onInit: function(){
+                $("#ranging-time-wrap").intervalWialon('set', 0);
+            },
+            onChange: function(data){
+                changeTime.apply(this, data);
+            },
+            onAfterClick: function () {
+                $(".date-time-content").resize();
+            },
+            tzOffset: wialon.util.DateTime.getTimezoneOffset() + wialon.util.DateTime.getDSTOffset(),
+            now: wialon.core.Session.getInstance().getServerTime(),
         };
+        
+        options.dateFormat = wialon.util.DateTime.convertFormat(setDateFormat.split('_')[0], true);
+        options.firstDay = firstDayOrig;
 
-
-        $.datepicker.regional['ru'] = {
-            closeText: 'Закрыть',
-            prevText: '&#x3c;Пред',
-            nextText: 'След&#x3e;',
-            currentText: 'Сегодня',
-            monthNames: ['Январь','Февраль','Март','Апрель','Май','Июнь','Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь'],
-            monthNamesShort: ['Янв','Фев','Мар','Апр','Май','Июн','Июл','Авг','Сен','Окт','Ноя','Дек'],
-            dayNames: ['воскресенье','понедельник','вторник','среда','четверг','пятница','суббота'],
-            dayNamesShort: ['вск','пнд','втр','срд','чтв','птн','сбт'],
-            dayNamesMin: ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'],
-            weekHeader: 'Не',
-            dateFormat: "yyyy-MM-dd",
-            firstDay: 1,
-            isRTL: false,
-            showMonthAfterYear: false,
-            yearSuffix: ''};
-        $.datepicker.setDefaults($.datepicker.regional[LANG]);
-
-        $("#date-from").datepicker( settings );
-        $("#date-to").datepicker( settings );
+        $("#ranging-time-wrap").intervalWialon(options);
     }
     /// set Date
     function setDateToDatepicker(from, to){
@@ -1290,36 +1295,6 @@ function exec_callback(id) {
         });
 
         $("#print-btn").click(print);
-
-        $("#time-select").on("click", ".time-template", function() {
-//            if ($(this).hasClass('active')) return;
-            changeTime(this.id.split("_")[1]);
-        });
-
-        $('#time-label .past').click(function(){
-            var self = this;
-            changePeriod(0);
-            if (changeTimeTimeout !== null)
-                clearTimeout(changeTimeTimeout);
-            changeTimeTimeout = setTimeout(function () {
-                execute();
-                clearTimeout(changeTimeTimeout);
-                changeTimeTimeout = null;
-            }, 1000);
-            return false;
-        });
-        $('#time-label .future').click(function(){
-            var self = this;
-            changePeriod(1);
-            if (changeTimeTimeout !== null)
-                clearTimeout(changeTimeTimeout);
-            changeTimeTimeout = setTimeout(function () {
-                execute();
-                clearTimeout(changeTimeTimeout);
-                changeTimeTimeout = null;
-            }, 1000);
-            return false;
-        });
     }
     /// support cookies getCookie
     function getCookie(name) {
@@ -1373,123 +1348,26 @@ function exec_callback(id) {
     }
 
     /// changeTime
-    function changeTime(value){
+    function changeTime(value, interval){
+        if( ! interval)
+            return ;
+
         value = parseInt(value, 10);
-        var interval = get_time_from_input();
+        // var interval = get_time_from_input();
         if (value == 4 && LOCAL_STATE.time_custom === null) {
             LOCAL_STATE.time_custom = interval;
         }
         LOCAL_STATE.time_type = value;
 
-        if(value < 4){
-            var tt = new Date(TODAY.from*1000);
-            var tnow = new Date(TODAY.to*1000);
-
-            switch (value){
-                case 0: // yesterday
-                    //tnow = new Date(TODAY.from*1000); //new Date(tt.getTime() - 1000);
-                    tt = new Date(tt.getTime() - 86400000);
-                    tnow = tt;
-                    break;
-                case 1: // today
-                    tnow = new Date(tt.getTime()); /*fix for set datepicker*/
-                    break;
-                case 2: // week
-                    tt = new Date( tt.getTime() -  (tt.getDay() - initDatepickerOpt.wd + 7)  * 86400000);
-                    tnow = new Date( tt.getTime() + 7  * 86399999 );
-
-                    break;
-                case 3: // month
-                    tt =   new Date( new Date(tt.setMonth( tnow.getMonth() - 1)).setDate(1) ); // set 1 day of prevision month;
-                    tnow = new Date( new Date(tnow.setMonth( tt.getMonth() + 1)).setDate(0) ); // set last day of prevision month
-                    break;
-            }
-
-            if (parseInt(tt.getTime() / 1000, 10) != interval[0] || parseInt(tnow.getTime() / 1000, 10) != interval[1]) {
-                setDateToDatepicker(tt, tnow);
-                LOCAL_STATE.time_from = parseInt(tt.getTime() / 1000, 10);
-                LOCAL_STATE.time_to = parseInt(tnow.getTime() / 1000, 10);
-            }
-
-            $('#execute-btn').hide();
-            if (changeTimeTimeout !== null)
-                clearTimeout(changeTimeTimeout);
-            changeTimeTimeout = setTimeout(function () {
-                execute();
-                clearTimeout(changeTimeTimeout);
-                changeTimeTimeout = null;
-            }, 1000);
-
-        } else if (LOCAL_STATE.time_custom != null) {
-            LOCAL_STATE.time_from = LOCAL_STATE.time_custom[0];
-            LOCAL_STATE.time_to = LOCAL_STATE.time_custom[1];
-            $('#execute-btn').show();
-
-            setDateToDatepicker(new Date(LOCAL_STATE.time_from * 1000), new Date(LOCAL_STATE.time_to * 1000));
-        }
+        $('#execute-btn').hide();
+        if (changeTimeTimeout !== null)
+            clearTimeout(changeTimeTimeout);
+        changeTimeTimeout = setTimeout(function () {
+            execute();
+            clearTimeout(changeTimeTimeout);
+            changeTimeTimeout = null;
+        }, 1000);
         activateTimeTemplate(value);
-    }
-
-    /** Move time period in future (e.g next month) or in past (e.g previous week)
-     *  Executes when 'next' or 'prev' button clicked
-     *
-     *  @param {bool} future   true - move period in future, false - in past
-     */
-    function changePeriod(future) {
-        var time_type = LOCAL_STATE.time_type;
-        if ($("#time-select .time-template.active").length > 0) {
-            time_type = $("#time-select .time-template.active").attr("id").split("_")[1];
-        }
-        time_type = parseInt(time_type,10);
-
-        var interval = get_time_from_input();
-        var t1 = null, t2 = null;
-        switch (time_type){
-            case 0: case 1: /* 24 hours */
-            t1 = (future ? interval[0] + 86400 : interval[0] - 86400) * 1000;
-            t2 = t1// + 86400000;// (future ? interval[0] + 2*86400-1 : interval[0] - 1) * 1000;
-            break;
-            case 2: /* week */
-                t1 = (future ? interval[0] + 7*86400 : interval[0] - 7*86400)*1000;
-                t2 = (future ? interval[0] + 14*86400-1 : interval[0] - 1)*1000;
-                break;
-            case 3: /* month */
-                t1 = new Date(interval[0]*1000);
-                t1.setMonth( future ? t1.getMonth() + 1 : t1.getMonth() -1 );
-
-                t2 = new Date(t1);
-                if (future) t2.setMonth( t2.getMonth() + 1 );
-                t2 = (future ? t2.getTime()-1000 : (interval[0] - 1)*1000);
-                break;
-        }
-        var t1 = new Date(t1);
-        var t2 = new Date(t2);
-        setDateToDatepicker(t1, t2);
-
-
-        var tf = en_format_time.split('<br>')[0];
-        var label = getTimeStr(Math.floor($("#date-from").datepicker('getDate').getTime() / 1000), tf);
-        label += (time_type>1) ? ' &ndash; ' + getTimeStr(Math.floor($("#date-to").datepicker('getDate').getTime() / 1000), tf) : '';
-
-//        var label = $("#date-from").val().split(" ")[0] + (time_type>1 ? " - " + $("#date-to").val().split(" ")[0] : "");
-        $("#time-label").children("span").html(label);
-
-        LOCAL_STATE.time_from = parseInt(t1.getTime()/1000, 10);
-        LOCAL_STATE.time_to = parseInt(t2.getTime()/1000, 10);
-
-        if (LOCAL_STATE.time_to === TODAY.from) {
-            activateTimeTemplate(0);
-        } else if (LOCAL_STATE.to < TODAY.to) {
-            activateTimeTemplate(1);
-        }
-
-        if (time_type === 0 || time_type == 1){
-            $("#time-select .time-template.active").removeClass("active");
-            if(LOCAL_STATE.time_from == TODAY.from - 86400 && LOCAL_STATE.time_to == TODAY.to - 86400*2 + 1)
-                activateTimeTemplate(0);
-            else if(LOCAL_STATE.time_from == TODAY.from && LOCAL_STATE.time_to == TODAY.to -86399)
-                activateTimeTemplate(1);
-        }
     }
 
     /** Activate interval time ( buttons, labels, timepickers... )
@@ -1509,18 +1387,6 @@ function exec_callback(id) {
                 obj.addClass("active");
         } else {
             obj.addClass("active");
-        }
-
-        var tf = en_format_time.split('<br>')[0];
-        var label = getTimeStr(Math.floor($("#date-from").datepicker('getDate').getTime() / 1000), tf);
-        label += (value>1) ? ' &ndash; ' + getTimeStr(Math.floor($("#date-to").datepicker('getDate').getTime() / 1000), tf) : '';
-
-        if (value < 4) {
-            $("#timepickers").hide();
-            $("#time-label").show().children("span").html(label);
-        } else {
-            $("#timepickers").show();
-            $("#time-label").hide();
         }
 
         $(".date-time-content").resize();

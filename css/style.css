@@ -1093,3 +1093,98 @@
 #pg li {
     float: left;
 }
+
+.interval-wialon {
+    position: relative;
+    top: 1px;
+    left: 17px;
+}
+
+.interval-wialon .iw-select{
+    display: inline-block;
+    float: left;
+    margin-left: -11px;
+    margin-top: -1px;
+}
+.interval-wialon .iw-labels{
+    margin-left: 15px;
+    display: inline-block;
+    float: right;
+    margin-top: 2px;
+}
+
+.interval-wialon .iw-select .iw-period-btn {
+    float: left;
+    border:1px solid #8098a4;
+    height:25px;
+    padding:0 15px;
+    cursor:pointer;
+    background:white;
+    border: 1px solid #666;
+    font-size: 12px;
+}
+
+.interval-wialon .iw-pickers input {
+    width: 80px !important;
+}
+
+.interval-wialon .iw-pickers{
+    float: left;
+    margin-left: 31px;
+    margin-top: -1px;
+}
+.interval-wialon .iw-select .iw-period-btn + .iw-period-btn {
+    margin-left: -1px;
+}
+
+.interval-wialon .iw-period-btn:hover, .interval-wialon .iw-period-btn.active {
+    background-color: #478BE2;
+    color: #fff;
+}
+
+.interval-wialon .iw-time-btn {
+    background: #09f;
+    border: 1px solid #09f;
+    color: #fff;
+    height: 23px;
+    padding: 0 15px;
+    cursor: pointer;
+}
+
+.interval-wialon .iw-labels .iw-label {
+    position: relative;
+    top: -4px;
+}
+
+.interval-wialon .iw-pickers input {
+    background-color: #FFF;
+    border:1px solid #c0c7cf;
+    padding:0;
+    margin:0;
+    height:21px;
+    cursor:pointer;
+    width:110px;
+    text-align:center;
+    vertical-align:top;
+    font-size: 12px;
+}
+
+.interval-wialon .iw-similar-btn {
+    width:16px;
+    height:16px;
+    margin-top: 3px;
+    display: inline-block;
+}
+
+.interval-wialon .iw-similar-btn.past {
+    background: url(../img/prev.png);
+    opacity:0.6;
+}
+.interval-wialon .iw-similar-btn.future {
+    background: url(../img/next.png);
+    opacity:0.6;
+}
+
+.interval-wialon .iw-similar-btn:hover {
+    opacity: 1;
+}

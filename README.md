@@ -1,4 +1,4 @@
-# Driver Logbook, version 1.6.1: (November 24, 2014)
+# Driver Logbook, version 1.6.2: (January 20, 2015)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
 ## Description:
@@ -39,5 +39,8 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
  * v1.6 (May 12, 2014)
 - Added support for user settings for addresses and dates.
 
-* v1.6.1 (November 24, 2014)
+ * v1.6.1 (November 24, 2014)
 - Fixed translations for "Business" and "Personal" trip statuses.
+
+ * v1.6.2 (January 20, 2014)
+- Date Interval plugin used
