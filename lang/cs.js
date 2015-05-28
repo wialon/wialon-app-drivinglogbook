@@ -79,5 +79,15 @@ TRANSLATIONS = {
 "Sep": "Zář",
 "Oct": "Říj",
 "Nov": "List",
-"Dec": "Pros"
+"Dec": "Pros",
+    "Home-Office-Home" : "",
+    "Drive home-office" : "",
+    "Drive office-home" : "",
+    "You have unsaved changes. Are you sure you want to leave?" : "",
+    "You have unsaved changes. Do you want to discard these changes?" : "",
+    "Choose geofences" : "",
+    "Home" : "",
+    "Office" : "",
+    "Cancel" : "",
+    "Save" : ""
 }

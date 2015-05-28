@@ -229,7 +229,7 @@
 
         function getLengthVisibleList(){
             var itemWidth = 43;
-            var W = $('.table-footer').width() - 80;//$('#pagestat').closest('.pgroup').width();
+            var W = $('.table-footer').width() - 230;
             return Math.floor(W/itemWidth) - 4;
         }
 

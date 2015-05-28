@@ -49,7 +49,7 @@
 	.title {
 		float: left;
 		margin-left: 15px;
-		margin-top: 22px;
+		margin-top: 12px;
 		font-size: 22px;
 		color: #797c80;
 	}
@@ -61,7 +61,7 @@
 	}
 
 	#header {
-		height: 70px;
+		height: 50px;
 		width: 100%;
 		background: #FFF;
         margin-bottom: 20px;
@@ -84,7 +84,7 @@
     }
 
 	#logo {
-		margin: 22px 0px 16px 28px;
+		margin: 12px 0px 16px 28px;
 	}
 
 	#data-inputs {
@@ -123,10 +123,19 @@
         border: 1px solid transparent;
         height: auto;
     }
-    .input-select.note,
+    .input-select.note {
+        border: 1px solid transparent;
+        background: transparent;
+        overflow: hidden;
+
+        outline: none;
+        width: 70px;
+    }
     .input-select.note:hover,
     .input-select.note:focus {
         border: 1px solid #c3c3c3;
+        background: #fff;
+        overflow: auto;
         outline: none;
         width: 70px;
     }
@@ -374,6 +383,9 @@
 	.textboxcontainerhover {
 		/*border: 1px solid #066397;*/
 	}
+	.textboxcontainer textarea {
+		font-family: Arial;
+	}
 
 	.textboxarrow {
 		width: 19px !important;
@@ -430,6 +442,10 @@
     /*expand menu*/
     .pull-right {
         float: right;
+    }
+    .pull-right img {
+    	margin:5px 12px 0 0;
+    	cursor:pointer;
     }
     .pull-left {
         float: left;
@@ -825,8 +841,8 @@
     }
     .btn {
         margin: 0;
-        background: #09f;
-        border: 1px solid #09f;
+        background: #478BE2;
+        border: 1px solid #478BE2;
         display: inline-block;
         text-align: center;
         text-decoration: none;
@@ -846,6 +862,10 @@
         border-left: 2px solid #fff;
         border-right: 2px solid #fff;
     }
+    .btn.cancel{
+    	background: #fff;
+    	color:#478BE2;
+    }
 
     .btn,
     .btn:hover,
@@ -855,7 +875,7 @@
         background: url(../img/show.png) no-repeat center center transparent;
         height: 10px;
         width: 10px;
-        margin-left: -13px;
+        margin-left: 13px;
         display: none;
         cursor: pointer;
     }
@@ -1059,9 +1079,19 @@
     }
     /*#table-instruments .btn:hover,*/
     #table-instruments .btn.active {
-        background-color: #09f;
+        background-color: #478BE2;
         color: #fff;
     }
+    #table-instruments #apply_changes {
+        background-color: #478BE2;
+        border-color: #478BE2;
+        color:#fff;
+        height:auto;
+        line-height:normal;
+        margin-top:10px;
+        padding: 2px 15px;
+    }
+
     #top, #prev, #next, #last {
         color: transparent;
         background-position: 50% 50%;
@@ -1187,4 +1217,76 @@
 
 .interval-wialon .iw-similar-btn:hover {
     opacity: 1;
+}
+
+.modal {
+	position:fixed;
+	top:50%;
+	left:50%;
+	-webkit-transform: translate(-50%, -50%);
+	-moz-transform: translate(-50%, -50%);
+	-o-transform: translate(-50%, -50%);
+	-ms-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	background: #fff;
+	color:#252525;
+	border:1px solid #8bdde8;
+	font-size: 12px;
+	/*overflow:hidden;*/
+}
+.modal * {
+	-webkit-box-sizing: border-box;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+.modal .modal-header {
+	font-size: 14px;
+	height:36px;
+	background: #d7f2f9;
+	padding-top:10px;
+}
+
+.modal>div {
+	padding:12px;
+}
+.modal .modal-controls {
+	width:20px;
+	float:right;
+	text-align: center;
+}
+.modal .modal-controls > div {
+	cursor: pointer;
+}
+.modal .modal-body>div{
+	text-align: right;
+}
+.modal .modal-body>div ul{
+	text-align: left;
+}
+.modal .modal-body input {
+	width: 210px;
+	margin-top: 5px;
+	margin-left: 8px;
+	height: 24px;
+}
+.modal-overflow {
+	position: fixed;
+	top:0;
+	bottom:0;
+	left:0;
+	right:0;
+	background: rgba(255,255,255,0.6);
+}
+
+.modal .modal-footer {
+	text-align: right;
+	border-top:1px solid #ccc;
+}
+
+.save-btn {
+	background: url("../img/save.png") no-repeat center center;
+	height: 24px;
+	width: 24px;
+	cursor:pointer;
+	display:none;
 }
