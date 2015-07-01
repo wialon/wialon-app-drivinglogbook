@@ -87,10 +87,10 @@
 			<% if (SetTable.end) { %><td class="td-date"><%= time_to %></td> <% } %>
 			<% if (SetTable.duration) { %><td><%= duration %></td> <% } %>
 			<% if (SetTable.initLocation) { %><td class="address-cell address-from"><%= fromL %><% if( begin.geoZone && fromL !='---' ){ %><% if( fromL ){ %>; <% } %><span class="geozone"><%= begin.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-			<% if (SetTable.startOdometer) { %><td><%= start_odometer %></td> <% } %>
+			<% if (SetTable.startOdometer) { %><td><%= start_odometer.toFixed(2) %></td> <% } %>
 			<% if (SetTable.finalLocation) { %><td class="address-cell address-to"><%= toL %><% if( end.geoZone && toL !='---' ){ %><% if( toL ){ %>; <% } %><span class="geozone"><%= end.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-			<% if (SetTable.endOdometer) { %><td><%= end_odometer %></td> <% } %>
-			<% if (SetTable.tripLength) { %><td><%= trip_length %></td> <% } %>
+			<% if (SetTable.endOdometer) { %><td><%= end_odometer.toFixed(2) %></td> <% } %>
+			<% if (SetTable.tripLength) { %><td><%= trip_length.toFixed(2) %></td> <% } %>
 			<% if (SetTable.driver) { %><td><%= driver %></td> <% } %>
 			<% if (SetTable.user) { %><td class="uname-wrap"><%= uname %></td> <% } %>
 			<% if (SetTable.lastChanges) { %><td class="td-date time_change-wrap"><%= time_change %></td> <% } %>
@@ -179,24 +179,18 @@
 				<head>
 				<style>
 					th {
-					border: 1px solid #000 !important;
-					padding: 3px !important;
-					vertical-align: top !important;
+						border: 1px solid #000 !important;
+						padding: 3px !important;
 					}
 					td {
-					border: 1px solid #000 !important;
-					padding: 3px !important;
-					vertical-align: top !important;
+						border: 1px solid #000 !important;
+						padding: 3px !important;
 					}
 				</style>
 			</head>
 			<body style="background:none !important;">
-				<div style="text-align: center !important;">
-					<span><%_ Logbook %></span></br>
-					<span><%_ Unit %> '<%= uname %>'</span></br>
-					<span><%_ From %> <%= tfrom %> <%_ To %> <%= tto %></span></br>
-				</div>
-				<table style="border: 1px solid #000;border-collapse: collapse;width: 100%;font-size:8px !important;">
+				<%= header %>
+				<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
 					<thead>
 						<tr>
 							<th id="nrowonpage-wrap"></th>
@@ -215,10 +209,11 @@
 							<% if (SetTable.notes) { %><th><%_ Notes %></th><% } %>
 						</tr>
 					</thead>
-				<tbody id="print-tbody" style="vertical-align: middle;"><%= content %></tbody>
-			</table>
-		</body>
-	</html>
+					<tbody id="print-tbody" style="vertical-align: middle;"><%= content %></tbody>
+				</table>
+				<%= footer %>
+			</body>
+		</html>
 	</script>
 	<script type="text/template" class="template" id="print-row">
 	<tr>
@@ -229,16 +224,396 @@
 		<% if (data.SetTable.end) { %><td><%= data.time_to %></td> <% } %>
 		<% if (data.SetTable.duration) { %><td><%= data.duration %></td> <% } %>
 		<% if (data.SetTable.initLocation) { %><td><%= data.fromL %><% if( data.begin.geoZone ){ %><% if( data.fromL ){ %>; <% } %><i class="geozone"><%= data.begin.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-		<% if (data.SetTable.startOdometer) { %><td><%= data.start_odometer %></td> <% } %>
+		<% if (data.SetTable.startOdometer) { %><td><%= data.start_odometer.toFixed(2) %></td> <% } %>
 		<% if (data.SetTable.finalLocation) { %><td><%= data.toL %><% if( data.end.geoZone ){ %><% if( data.toL ){ %>; <% } %><i class="geozone"><%= data.end.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-		<% if (data.SetTable.endOdometer) { %><td><%= data.end_odometer %></td> <% } %>
-		<% if (data.SetTable.tripLength) { %><td><%= data.trip_length %></td> <% } %>
+		<% if (data.SetTable.endOdometer) { %><td><%= data.end_odometer.toFixed(2) %></td> <% } %>
+		<% if (data.SetTable.tripLength) { %><td><%= data.trip_length.toFixed(2) %></td> <% } %>
 		<% if (data.SetTable.driver) { %><td><%= data.driver %></td> <% } %>
 		<% if (data.SetTable.user) { %><td><%= data.uname %></td> <% } %>
 		<% if (data.SetTable.lastChanges) { %><td><%= data.time_change %></td> <% } %>
 		<% if (data.SetTable.tripStatus) { %><td><%= data.message %></td><% } %>
 		<% if (data.SetTable.notes) { %><td><%= data.note %></td><% } %>
 	</tr>
+	</script>
+	<script type="text/template" class="template" id="print-header-tmpl-1">
+		<div style="text-align: center !important;">
+			<span><%_ Driving Logbook %></span>
+			<br />
+			<span><%_ Unit %> '<%= uname %>'</span>
+			<br />
+			<span>
+				<% if (tfrom === tto) { %>
+					<%= tfrom %>
+				<% } else { %>
+					<%_ From %> <%= tfrom %> <%_ To %> <%= tto %>
+				<% } %>
+			</span>
+			<br />
+		</div>
+	</script>
+	<script type="text/template" class="template" id="print-header-tmpl-2">
+		<h3><%_ Driving Logbook %></h3>
+		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+			<tbody style="vertical-align: middle;">
+				<tr>
+					<td><strong><%_ Driver %>:</strong></td>
+					<td><%= tdriver %></td>
+					<td><strong><%_ Driver no. %>:</strong></td>
+					<td>&nbsp;</td>
+					<td><strong><%_ License no. %>:</strong></td>
+					<td>&nbsp;</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+	</script>
+	<script type="text/template" class="template" id="print-header-tmpl-3">
+		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+			<tbody style="vertical-align: top;">
+				<tr>
+					<td width="23%" style="padding:0 !important;border:0 !important;">
+						<strong><%_ Driver %></strong>
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: bottom;border:0 none;">
+								<tr>
+									<td style="padding:0 !important;border:0 !important;" width="50%">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Social Security no. %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Name %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Address %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ ZIP code %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ City %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Declaration holder %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+									<td style="padding:0 !important;vertical-align:bottom;">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													<%_ Yes/No %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td width="2%" style="padding:0 !important;border:0 !important;">&nbsp;</td>
+					<td width="25%" style="padding:0 !important;border:0 !important;">
+						<strong><%_ Vehicle %></strong>
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: bottom;border:0 none;">
+								<tr>
+									<td style="padding:0 !important;border:0 !important;" width="50%">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Driver %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Brand %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Type %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Available from %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Available to %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Odometer date %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Odometer value %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+									<td style="padding:0 !important;vertical-align:bottom;">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%= tdriver %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													<%= tfrom %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													<%= tto %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													&nbsp;
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td width="2%" style="padding:0 !important;border:0 !important;">&nbsp;</td>
+					<td width="23%" style="padding:0 !important;border:0 !important;">
+						<strong><%_ Employee %></strong>
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: bottom;border:0 none;">
+								<tr>
+									<td style="padding:0 !important;border:0 !important;" width="50%">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Tax. number %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Name %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Address %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ ZIP code %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Private Use allowed? %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+									<td style="padding:0 !important;vertical-align:bottom;">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;border-top:1px solid #000 !important;">
+													<%_ Yes/No %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+					<td width="2%" style="padding:0 !important;border:0 !important;">&nbsp;</td>
+					<td width="23%" style="padding:0 !important;border:0 !important;">
+						<strong><%_ IT service provider %></strong>
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: bottom;border:0 none;">
+								<tr>
+									<td style="padding:0 !important;border:0 !important;" width="50%">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Company name %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ Company reg. no. %>
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													<%_ RRS type and version no. %>
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+									<td style="padding:0 !important;vertical-align:bottom;">
+										<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+											<tbody style="vertical-align: middle;">
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+												<tr><td style="padding:0 !important;border:0 !important;">
+													&nbsp;
+												</td></tr>
+											</tbody>
+										</table>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+		<br />
+	</script>
+	<script type="text/template" class="template" id="print-footer-tmpl-1">
+		<br />
+		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;border:0 none;">
+			<thead>
+				<tr>
+					<% if (start.SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
+					<% if (start.SetTable.end) { %><th><%_ End %></th><% } %>
+					<% if (start.SetTable.startOdometer) { %><th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th><% } %>
+					<% if (start.SetTable.endOdometer) { %><th><%_ Final mileage %>,&nbsp;<%= metric_m %></th><% } %>
+					<% if (start.SetTable.tripLength) { %><th><%_ Mileage %>,&nbsp;<%= metric_m %></th><% } %>
+					<% _.each(summarize, function(v, k) { %>
+						<th><%= k %>,&nbsp;<%= metric_m %></th>
+					<% }); %>
+				</tr>
+			</thead>
+			<tbody style="vertical-align: middle;border:0 none;">
+				<% if (start.SetTable.beginning) { %><td><%= start.time_from %></td><% } %>
+				<% if (start.SetTable.end) { %><td><%= end.time_to %></td><% } %>
+				<% if (start.SetTable.startOdometer) { %><td><%= start.start_odometer %></td><% } %>
+				<% if (start.SetTable.endOdometer) { %><td><%= end.end_odometer %></td><% } %>
+				<% if (start.SetTable.tripLength) { %><td><%= (parseFloat(end.end_odometer) - parseFloat(start.start_odometer)).toFixed(2) %></td><% } %>
+				<% _.each(summarize, function(v) { %>
+					<td><%= v.toFixed(2) %></td>
+				<% }); %>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" class="template" id="print-footer-tmpl-2">
+		<br />
+		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+			<tbody style="vertical-align: middle;border:0 none;">
+				<tr>
+					<td style="padding:0 !important;border:0 !important;">
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: middle;">
+								<% _.each(summarize, function(v, k) { %>
+									<tr>
+										<td width="80%"><%= k %>,&nbsp;<%= metric_m %>:</td>
+										<td><%= v.toFixed(2) %></td>
+									</tr>
+								<% }); %>
+								<% if (payment) { %>
+									<tr>
+										<td width="80%"><%_ Taxable payment %> &lt; <%= payment_mileage %>:</td>
+										<td><%= payment_less.toFixed(2) %></td>
+									</tr>
+									<tr>
+										<td width="80%"><%_ Taxable payment %> &gt; <%= payment_mileage %>:</td>
+										<td><%= payment_more.toFixed(2) %></td>
+									</tr>
+									<tr>
+										<td width="80%"><%_ Total refund %>:</td>
+										<td><%= refund.toFixed(2) %></td>
+									</tr>
+								<% } %>
+							</tbody>
+						</table>
+					</td>
+					<td style="border:0 !important;"></td>
+					<td style="padding:0 !important;vertical-align:bottom;border:0 !important;">
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: middle;">
+								<tr>
+									<td width="30%"><%_ Date %></td>
+									<td><%= tnow %></td>
+								</tr>
+								<tr>
+									<td width="30%"><%_ Signature %></td>
+									<td></td>
+								</tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</tbody>
+		</table>
+	</script>
+	<script type="text/template" class="template" id="print-footer-tmpl-3">
+		<br />
+		<table style="border-collapse: collapse;width: 50%;font-size:8px !important;">
+			<tbody style="vertical-align: middle;border:0 none;">
+				<tr>
+					<td style="padding:0 !important;border:0 !important;" width="80%">
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: middle;">
+								<% _.each(summarize, function(v, k) { %>
+									<tr><td style="padding:0 !important;border:0 !important;">
+										<%= k %>,&nbsp;<%= metric_m %>
+									</td></tr>
+								<% }); %>
+								<tr><td style="padding:0 !important;border:0 !important;">
+									<%_ Correction %>
+								</td></tr>
+								<tr><td style="padding:0 !important;border:0 !important;">
+									<%_ Difference %>
+								</td></tr>
+							</tbody>
+						</table>
+					</td>
+					<td style="padding:0 !important;vertical-align:bottom;">
+						<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
+							<tbody style="vertical-align: middle;">
+								<% _.each(summarize, function(v) { %>
+									<tr><td style="padding:0 !important;border:0 !important;">
+										<%= v.toFixed(2) %>
+									</td></tr>
+								<% }); %>
+								<tr><td style="padding:0 !important;border:0 !important;">
+									&nbsp;
+								</td></tr>
+								<tr><td style="padding:0 !important;border:0 !important;">
+									&nbsp;
+								</td></tr>
+							</tbody>
+						</table>
+					</td>
+				</tr>
+			</tbody>
+		</table>
 	</script>
 	<script type="text/template" class="template" id="ranging-time-tpl">
     <div class="interval-wialon {className}" id="{id}">
@@ -332,12 +707,55 @@
 <div class="modal">
 	<div class="modal-header">
 		<div class="modal-controls"><div class="close">×</div></div>
-		<%_ Choose geofences %>
+		<%_ Settings %>
 	</div>
 	<div class="modal-body">
-		<div><label for="home_geofence"><%_ Home %>:</label><span><input type="text" name="home_geofence" placeholder="<%_ Home %>" id="home_geofence_select"></span></div>
-		<div><label for="office_geofence"><%_ Office %>:</label><span><input type="text" name="office_geofence" placeholder="<%_ Office %>" id="office_geofence_select"><span></div>
-		<input type="hidden" id="home_geofence">
+		<h3><%_ Choose geofences %></h3>
+		<div>
+			<label for="home_geofence"><%_ Home %>:</label>
+			<span><input type="text" name="home_geofence" placeholder="<%_ Home %>" id="home_geofence_select"></span>
+		</div>
+		<div>
+			<label for="office_geofence"><%_ Office %>:</label>
+			<span><input type="text" name="office_geofence" placeholder="<%_ Office %>" id="office_geofence_select"><span>
+		</div>
+		<h3><%_ Print %></h3>
+		<div>
+			<label for="header_tmpl"><%_ Header %>:</label>
+			<span><select name="header_tmpl" id="header_tmpl_select">
+				<option value="1"><%_ Template %> 1</option>
+				<option value="2"><%_ Template %> 2</option>
+				<option value="3"><%_ Template %> 3</option>
+			</select></span>
+		</div>
+		<div>
+			<label for="footer_tmpl"><%_ Footer %>:</label>
+			<span><select name="footer_tmpl" id="footer_tmpl_select">
+				<option value="1"><%_ Template %> 1</option>
+				<option value="2"><%_ Template %> 2</option>
+				<option value="3"><%_ Template %> 3</option>
+			</select></span>
+		</div>
+		<div>
+			<label for="payment_mileage"><%_ Payment mileage %>:</label>
+			<span><input type="text" name="payment_mileage" placeholder="20000" id="payment_mileage_select"></span>
+		</div>
+		<div>
+			<label for="payment_less"><%_ Taxable payment %> (<):</label>
+			<span><input type="text" name="payment_less" placeholder="0" id="payment_less_select"></span>
+		</div>
+		<div>
+			<label for="payment_more"><%_ Taxable payment %> (>):</label>
+			<span><input type="text" name="payment_more" placeholder="0" id="payment_more_select"></span>
+		</div>
+		<div>
+			<label for="show_payment"><%_ Show payment %>:</label>
+			<span><input type="checkbox" name="show_payment" id="show_payment_select"></span>
+		</div>
+		<div>
+			<label for="show_hoh"><%_ Show %> <%_ Home-Office-Home %>:</label>
+			<span><input type="checkbox" name="show_hoh" id="show_hoh_select"></span>
+		</div>		<input type="hidden" id="home_geofence">
 		<input type="hidden" id="office_geofence">
 	</div>
 	<div class="modal-footer">

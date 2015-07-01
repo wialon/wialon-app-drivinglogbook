@@ -1257,18 +1257,35 @@
 .modal .modal-controls > div {
 	cursor: pointer;
 }
-.modal .modal-body>div{
-	text-align: right;
-}
 .modal .modal-body>div ul{
 	text-align: left;
 }
-.modal .modal-body input {
+.modal .modal-body input[type="text"] {
 	width: 210px;
 	margin-top: 5px;
-	margin-left: 8px;
 	height: 24px;
 }
+.modal .modal-body input[type="checkbox"] {
+    margin-top: 5px;
+}
+noindex:-o-prefocus, .modal .modal-body input[type="checkbox"] {
+    margin-right: 3px;
+}
+.modal .modal-body select {
+    width: 210px;
+    margin-top: 5px;
+    height: 24px;
+}
+.modal .modal-body label {
+    display: inline-block;
+    margin-right: 8px;
+    width: 180px;
+    text-align: right;
+    overflow-x:   hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
 .modal-overflow {
 	position: fixed;
 	top:0;

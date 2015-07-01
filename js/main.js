@@ -84,6 +84,9 @@ function exec_callback(id) {
 	var address_format;
 
 	var home = office = null;
+	var hoh = payment = false;
+	var header_tmpl = footer_tmpl = 1;
+	var payment_less = payment_more = payment_mileage = 0;
 
 	/// IE check
 	function ie() {
@@ -287,8 +290,18 @@ function exec_callback(id) {
 				// run after load all data:
 				en_format_time = wialon.util.DateTime.convertFormat(fd, true).replace(/_/, '<br>').replace(/ /, '&nbsp;');
 
-				Locale = getLocale();
-				wialon.util.DateTime.setLocale(Locale.days, Locale.months, Locale.days_abbrev, Locale.months_abbrev);
+				// set default regional settings
+				var regional = $.datepicker.regional[LANG];
+				if (regional) {
+					$.datepicker.setDefaults(regional);
+					// also wialon locale
+					wialon.util.DateTime.setLocale(
+						regional.dayNames,
+						regional.monthNames,
+						regional.dayNamesShort,
+						regional.monthNamesShort
+					);
+				}
 
 				fill_units_select(items);
 				ltranlate(items[0]);
@@ -498,6 +511,10 @@ function exec_callback(id) {
 			'name': '',
 			'id': ''
 		};
+		hoh = payment = false;
+		header_tmpl = footer_tmpl = 1;
+		payment_less = payment_more = payment_mileage = 0;
+
 		if (settings['geofences']) {
 			if (settings['geofences']['home']) {
 				home = settings['geofences']['home'];
@@ -505,6 +522,29 @@ function exec_callback(id) {
 
 			if (settings['geofences']['office']) {
 				office = settings['geofences']['office'];
+			}
+		}
+		if (settings['print']) {
+			if (settings['print']['hoh']) {
+				hoh = settings['print']['hoh'];
+			}
+			if (settings['print']['payment']) {
+				payment = settings['print']['payment'];
+			}
+			if (settings['print']['header_tmpl']) {
+				header_tmpl = settings['print']['header_tmpl'];
+			}
+			if (settings['print']['footer_tmpl']) {
+				footer_tmpl = settings['print']['footer_tmpl'];
+			}
+			if (settings['print']['payment_less']) {
+				payment_less = parseFloat(settings['print']['payment_less']);
+			}
+			if (settings['print']['payment_more']) {
+				payment_more = parseFloat(settings['print']['payment_more']);
+			}
+			if (settings['print']['payment_mileage']) {
+				payment_mileage = parseInt(settings['print']['payment_mileage']);
 			}
 		}
 	}
@@ -992,24 +1032,6 @@ function exec_callback(id) {
 		$("#of").html($.localise.tr("&nbsp;of&nbsp;"));
 
 		$("#print-btn").val($.localise.tr("Print"));
-
-		// var t = underi18n.MessageFactory(TRANSLATIONS);
-		// add tab for datetimepiker
-		// $('#ranging-time-wrap').html( _.template(underi18n.template($('#ranging-time-tpl').html(), t)) );
-		var LANG = get_html_var('lang') || 'en';
-		var loc = getLocale();
-		$.datepicker.regional[LANG] = {
-			prevText: TRANSLATIONS['Prev'],
-			nextText: TRANSLATIONS['Next'],
-			currentText: TRANSLATIONS['Today'],
-			monthNames: loc.months,
-			monthNamesShort: loc.months_abbrev,
-			dayNames: loc.days,
-			dayNamesShort: loc.days_abbrev,
-			dayNamesMin: loc.days_abbrev,
-		};
-		$.datepicker.setDefaults($.datepicker.regional[LANG]);
-		// var t = underi18n.MessageFactory(TRANSLATIONS);
 	}
 	///
 	function ltranlate(unit) {
@@ -1066,68 +1088,14 @@ function exec_callback(id) {
 			if (metric) {
 				res *= 0.6214;
 			}
-			return res.toFixed(2);
+			return res;
 		}
 		if (settings.h) {
 			return (metric) ? Math.round(parseInt(settings.h) / 3.2808) : parseInt(settings.h);
 		}
 		return metric; // default return metric of units;
 	}
-	/// set Locale Date Time
-	function getLocale() {
-		return {
-			days: [
-				$.localise.tr("Sunday"),
-				$.localise.tr("Monday"),
-				$.localise.tr("Tuesday"),
-				$.localise.tr("Wednesday"),
-				$.localise.tr("Thursday"),
-				$.localise.tr("Friday"),
-				$.localise.tr("Saturday")
-			],
-			months: [
-				$.localise.tr("January"),
-				$.localise.tr("February"),
-				$.localise.tr("March"),
-				$.localise.tr("April"),
-				$.localise.tr("May"),
-				$.localise.tr("June"),
-				$.localise.tr("July"),
-				$.localise.tr("August"),
-				$.localise.tr("September"),
-				$.localise.tr("October"),
-				$.localise.tr("November"),
-				$.localise.tr("December")
-			],
-			days_abbrev: [
-				$.localise.tr("Sun"),
-				$.localise.tr("Mon"),
-				$.localise.tr("Tue"),
-				$.localise.tr("Wed"),
-				$.localise.tr("Thu"),
-				$.localise.tr("Fri"),
-				$.localise.tr("Sat")
-			],
-			months_abbrev: [
-				$.localise.tr("Jan"),
-				$.localise.tr("Feb"),
-				$.localise.tr("Mar"),
-				$.localise.tr("Apr"),
-				$.localise.tr("May"),
-				$.localise.tr("Jun"),
-				$.localise.tr("Jul"),
-				$.localise.tr("Aug"),
-				$.localise.tr("Sep"),
-				$.localise.tr("Oct"),
-				$.localise.tr("Nov"),
-				$.localise.tr("Dec")
-			]
-		}
-	}
-	/// set Locale Date Time
-	function setLocaleDateTime() {
-		wialon.util.DateTime.setLocale(Locale.days, Locale.months, Locale.days_abbrev, Locale.months_abbrev);
-	}
+
 	var currentType, currentInterval;
 	/// init initDatepicker
 	function initDatepicker(firstDay, setDateFormat, firstDayOrig) {
@@ -1183,16 +1151,19 @@ function exec_callback(id) {
 	}
 	/// print
 	function print() {
-		var windowUrl = 'about:blank';
-		var uniqueName = new Date();
-		var windowName = 'Print' + uniqueName.getTime();
-
-		var WinPrint = window.open(windowUrl, "", 'left=300,top=300,right=500,bottom=500,width=1000,height=500');
+		var WinPrint = window.open('about:blank', '', 'left=300,top=300,right=500,bottom=500,width=1000,height=500');
 
 		var t = underi18n.MessageFactory(TRANSLATIONS);
 		var template = _.template(underi18n.template($("#print").html(), t));
 
 		var ttrips = [];
+		var summarize = {};
+		var tdriver = null;
+
+		_.each(textbox_items.slice(0, hoh ? 3 : 2), function(v) {
+			summarize[v] = 0;
+		});
+
 		for (var i = 0, len = ctrips.length; i < len; i++) {
 			var trip = {};
 			$.extend(trip, ctrips[i]);
@@ -1200,6 +1171,7 @@ function exec_callback(id) {
 				continue;
 			}
 			var data = trip_to_data(i, trip);
+
 			if (data) {
 				var mtext = get_trip_mtext(trip);
 				var note = get_trip_ntext(trip);
@@ -1207,6 +1179,15 @@ function exec_callback(id) {
 				data['message'] = mtext ? mtext : ""; //"Business";
 				data['note'] = note ? note : "";
 				ttrips.push(data);
+
+				if ('driver' in data) {
+					tdriver = (tdriver && tdriver !== data.driver) ? '---' : data.driver;
+				}
+
+				if ((data['message'] === textbox_items[2] && !hoh) || !_.contains(textbox_items.slice(0, 3), data['message'])) {
+					continue;
+				}
+				summarize[data['message']] += parseFloat(data.trip_length);
 			}
 		}
 
@@ -1224,15 +1205,49 @@ function exec_callback(id) {
 		var deltaTime = wialon.util.DateTime.getTimezoneOffset() + (new Date()).getTimezoneOffset() * 60;
 		var tfrom = ttimes[0] - deltaTime;
 		var tto = ttimes[1] - deltaTime;
+		var tnow = wialon.core.Session.getInstance().getServerTime() - deltaTime;
 
-		var content = template({
-			content: tcontent,
+		var df = $('#ranging-time-wrap').intervalWialon('__getData');
+		df = df.dateFormat || 'dd MMM yyyy';
+
+		if (tto - tfrom < 86.4e3) {
+			tto = tfrom;
+		}
+
+		var refund = 0;
+		if ( payment_mileage ) {
+			refund = Math.floor(summarize[textbox_items[0]]/payment_mileage)*payment_more+(summarize[textbox_items[0]]%payment_mileage)*payment_less;
+		}
+
+		var theader = _.template(underi18n.template($("#print-header-tmpl-" + header_tmpl).html(), t))({
+			tfrom: getTimeStr(tfrom, df),
+			tto: getTimeStr(tto, df),
 			uname: cunit.getName(),
+			tdriver: tdriver
+		});
+
+		var tfooter = _.template(underi18n.template($("#print-footer-tmpl-" + footer_tmpl).html(), t))({
+			summarize: summarize,
+			payment: payment,
+			payment_mileage: payment_mileage,
+			payment_less: payment_less,
+			payment_more: payment_more,
+			refund: refund,
 			metric_m: (getMeasureUnits({
 				unit: cunit
 			})) ? $.localise.tr("mi") : $.localise.tr("km"),
-			tfrom: getTimeStr(tfrom, tf),
-			tto: getTimeStr(tto, tf),
+			start: ttrips[0],
+			end: ttrips[ttrips.length - 1],
+			tnow: getTimeStr(tnow, df)
+		});
+
+		var content = template({
+			content: tcontent,
+			metric_m: (getMeasureUnits({
+				unit: cunit
+			})) ? $.localise.tr("mi") : $.localise.tr("km"),
+			header: theader,
+			footer: tfooter,
 			SetTable: SetTable
 		});
 
@@ -1438,29 +1453,21 @@ function exec_callback(id) {
 
 		$("#print-btn").click(print);
 		jQuery("#config-btn").click(function() {
-			var user = wialon.core.Session.getInstance().getCurrUser();
-			var settings = user.getCustomProperty('__app__logbook_settings', '{}');
-			settings = JSON.parse(settings);
-			var home = office = {
-				'name': '',
-				'id': ''
-			};
-			if (settings['geofences']) {
-				if (settings['geofences']['home']) {
-					home = settings['geofences']['home'];
-				}
-
-				if (settings['geofences']['office']) {
-					office = settings['geofences']['office'];
-				}
+			if (home === null || office === null) {
+				loadUserSettings();
 			}
-
 			jQuery("#home_geofence").val(home.id);
 			jQuery("#home_geofence_select").val(home.name);
 			jQuery("#office_geofence").val(office.id);
 			jQuery("#office_geofence_select").val(office.name);
+			jQuery("#show_hoh_select").prop('checked', hoh);
+			jQuery("#show_payment_select").prop('checked', payment);
+			jQuery("#header_tmpl_select").val(header_tmpl);
+			jQuery("#footer_tmpl_select").val(footer_tmpl);
+			jQuery("#payment_less_select").val(payment_less || 0);
+			jQuery("#payment_more_select").val(payment_more || 0);
+			jQuery("#payment_mileage_select").val(payment_mileage || 0);
 			jQuery("#user_settings").toggle();
-
 		});
 		jQuery(".modal-overflow").click(function(event) {
 			if (event.target == this || jQuery(event.target).hasClass("close")) {
@@ -1476,11 +1483,27 @@ function exec_callback(id) {
 								'id': jQuery("#office_geofence_select").val()?jQuery("#office_geofence").val():'',
 								'name': jQuery("#office_geofence_select").val()
 							}
+						},
+						'print': {
+							'hoh': jQuery("#show_hoh_select").prop("checked"),
+							'payment': jQuery("#show_payment_select").prop("checked"),
+							'header_tmpl': jQuery("#header_tmpl_select").val(),
+							'footer_tmpl': jQuery("#footer_tmpl_select").val(),
+							'payment_less': jQuery("#payment_less_select").val(),
+							'payment_more': jQuery("#payment_more_select").val(),
+							'payment_mileage': jQuery("#payment_mileage_select").val(),
 						}
 					}
 					user.updateCustomProperty('__app__logbook_settings', JSON.stringify(settings))
 					home = settings.geofences.home;
 					office = settings.geofences.office;
+					hoh = settings.print.hoh;
+					header_tmpl = settings.print.header_tmpl;
+					footer_tmpl = settings.print.footer_tmpl;
+					payment_less = parseFloat(settings.print.payment_less);
+					payment_more = parseFloat(settings.print.payment_more);
+					payment_mileage = parseInt(settings.print.payment_mileage);
+					payment = settings.print.payment;
 					execute();
 				}
 				jQuery("#user_settings").toggle();
@@ -1638,46 +1661,6 @@ function exec_callback(id) {
 	}
 
 
-	/** Format abs time to local time
-	 *
-	 *  @param {int} abs_time   UNIX time UTC
-	 *  @param {int} tz   timezone offset
-	 *  @param {int} dst   DST
-	 *  @returns {int} local time
-	 */
-	function get_user_time(abs_time, tz, dst) {
-		if (typeof wialon == "undefined") return abs_time;
-		var t = abs_time - get_local_timezone() + tz + dst;
-		return t;
-	}
-
-	/** Get local timezone
-	 *
-	 *  @returns {int} local timezone
-	 */
-	function get_local_timezone() {
-		var rightNow = new Date();
-		var jan1 = new Date(rightNow.getFullYear(), 0, 1, 0, 0, 0, 0); // jan 1st
-		var june1 = new Date(rightNow.getFullYear(), 6, 1, 0, 0, 0, 0); // june 1st
-		var temp = jan1.toGMTString();
-		var jan2 = new Date(temp.substring(0, temp.lastIndexOf(" ") - 1));
-		temp = june1.toGMTString();
-		var june2 = new Date(temp.substring(0, temp.lastIndexOf(" ") - 1));
-		var std_time_offset = ((jan1 - jan2) / (1000 * 60 * 60));
-		var daylight_time_offset = ((june1 - june2) / (1000 * 60 * 60));
-		var dst;
-		if (std_time_offset == daylight_time_offset) {
-			dst = "0"; // daylight savings time is NOT observed
-		} else {
-			// positive is southern, negative is northern hemisphere
-			var hemisphere = std_time_offset - daylight_time_offset;
-			if (hemisphere >= 0) {
-				std_time_offset = daylight_time_offset;
-			}
-			dst = "1"; // daylight savings time is observed
-		}
-		return parseInt(std_time_offset * 3600, 10);
-	}
 	/** show message
 	 *
 	 *  @mes {string} message. may be HTML
@@ -1804,11 +1787,13 @@ function exec_callback(id) {
 			language: LANG
 		});
 
+		// load datepicker locale
+		if (LANG != "en") {
+			load_script("//apps.wialon.com/plugins/wialon/i18n/" + LANG + ".js");
+		}
+
 		url += "/wsdk/script/wialon.js" ;
 		load_script(url, init_sdk);
-
-		$.datepicker.setDefaults($.datepicker.regional[LANG]);
-		//		$.timepicker.setDefaults( $.timepicker.regional[ LANG ] );
 
 		hresize(null);
 	});
