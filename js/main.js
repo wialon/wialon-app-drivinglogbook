@@ -211,7 +211,7 @@ function exec_callback(id) {
 				wd: (locale && locale.wd && locale.wd > 1) ? 0 : 1,
 				wd_orig: locale.wd,
 				fd: fd
-			}
+			};
 		});
 
 		address_format = wialon.core.Session.getInstance().getCurrUser().getCustomProperty("us_addr_fmt", "");
@@ -415,6 +415,7 @@ function exec_callback(id) {
 		ltranlate(unit);
 		load_trips(unit, times);
 	}
+
 	/// Main function for unloading trips
 	function load_trips(unit, times) {
 		ctrips = [];
@@ -429,7 +430,7 @@ function exec_callback(id) {
 
 
 		var events_config = {
-			itemId: cunit.getId(),
+			itemId: unit.getId(),
 			eventType: 'trips',
 			ivalType: 4,
 			ivalFrom: times[0],
@@ -437,20 +438,34 @@ function exec_callback(id) {
 		};
 
 		var sensors = cunit.getSensors();
-		var private_sensor = 0;
+		var private_sensor = 0, mileage_sensor = null;
 		for(var s_id in sensors){
-			if(sensors[s_id].t == "private mode") { //detect trip status by private mode sensor
+			if (sensors[s_id].t == "private mode") { // detect trip status by private mode sensor
 				private_sensor = sensors[s_id].id;
 				events_config.filter1 = sensors[s_id].id;
 				events_config.eventType += ',sensors';
+			} else if (sensors[s_id].t == "mileage") { // use mileage sensor
+				mileage_sensor = sensors[s_id];
+			}
+
+			if (private_sensor > 0 && mileage_sensor) {
 				break;
 			}
 		}
+
+		// arrays for events data
+		var batch_params = [],
+			ev_sensors = [],
+			locations = [],
+			trips = [];
+
+		wialon.core.Remote.getInstance().startBatch('getTripsBatch');
+
 		wialon.core.Remote.getInstance().remoteCall(
 			"unit/get_events",
 			events_config,
-			wialon.util.Helper.wrapCallback(qx.lang.Function.bind(function(unit, code, events) {
-				if(code != 0 || !events) {
+			function(code, events) {
+				if(code || !events) {
 					$("#table-wrap").activity(false);
 					$("#execute-btn").removeAttr("disabled");
 					undisableui();
@@ -458,19 +473,25 @@ function exec_callback(id) {
 					showMessage($.localise.tr("No data for selected interval."));
 					return;
 				}
-				var locations = [];
-				var trips = [], ev_sensors = [];
+
 				if (!events.trips.from  && !events.trips.to ){
 					for(var i = 0; i<events.trips.length; i++){
 						locations.push({lat:events.trips[i].from.y, lon:events.trips[i].from.x});
 						locations.push({lat:events.trips[i].to.y, lon:events.trips[i].to.x});
+
+						if (mileage_sensor) {
+							// messages for calc sensors value
+							addMessagesToBatch(batch_params, unit.getId(), events.trips[i]);
+						}
 					}
 					trips=events.trips;
 				} else if( typeof events.trips == "object") {
 					locations.push({lat:events.trips.from.y,lon:events.trips.from.x});
 					locations.push({lat:events.trips.to.y,lon:events.trips.to.x});
 					trips.push(events.trips);
+					addMessagesToBatch(batch_params, unit.getId(), events.trips);
 				}
+				// private sensors
 				if(events.sensors){
 					if (!events.sensors[private_sensor].from  && !events.sensors[private_sensor].to ){
 						ev_sensors=events.sensors[private_sensor];
@@ -478,30 +499,85 @@ function exec_callback(id) {
 						ev_sensors.push(events.sensors[private_sensor]);
 					}
 				}
-				if(locations.length > 0){
-					wialon.util.Gis.getLocations(locations, qx.lang.Function.bind(function(trips_array, sensors_array, unit, code, result) {
-						if (!code && result) {
-							for(var arr_id in trips_array){
-								trips_array[arr_id].from.location = result[arr_id*2];
-								trips_array[arr_id].to.location = result[arr_id*2+1];
-							}
-							ctrips = getNormalizedData(trips_array,sensors_array,unit);
-							refresh_drivers(cunit, times, ctrips);
-							$("#paginated-table").dividedByPages(ctrips, trips_to_table);
-							undisableui();
-							undisabletableui();
-						}
-					}, this, trips, ev_sensors, unit));
-				}else {
-					$("#table-wrap").activity(false);
-					$("#execute-btn").removeAttr("disabled");
-					undisableui();
-					disabletableui();
-					showMessage($.localise.tr("No data for selected interval."));
-				}
-			}, this, unit))
+			}
 		);
+
+		wialon.core.Remote.getInstance().finishBatch(function() {
+			// when all data received
+			if (locations.length > 0) {
+				if (mileage_sensor) {
+					wialon.core.Remote.getInstance().remoteCall('core/batch', batch_params, function(code, msgs) {
+						wialon.util.Gis.getLocations(locations, qx.lang.Function.bind(addLocationsToTrips, this, trips, ev_sensors, unit, times, mileage_sensor, msgs));
+					});
+				} else {
+					wialon.util.Gis.getLocations(locations, qx.lang.Function.bind(addLocationsToTrips, this, trips, ev_sensors, unit, times, mileage_sensor, []));
+				}
+			} else {
+				$("#table-wrap").activity(false);
+				$("#execute-btn").removeAttr("disabled");
+				undisableui();
+				disabletableui();
+				showMessage($.localise.tr("No data for selected interval."));
+			}
+		}, 'getTripsBatch');
 	}
+
+	// construct array to get start/finish messages for trip
+	function addMessagesToBatch(batch, unitId, trip) {
+		batch.push({
+			svc: 'messages/load_last',
+			params: {
+				itemId: unitId,
+				lastTime: trip.from.t,
+				lastCount: 1,
+				flags: 0,
+				flagsMask: 0,
+				loadCount:1
+			}
+		}, {
+			svc: 'messages/load_last',
+			params: {
+				itemId: unitId,
+				lastTime: trip.to.t,
+				lastCount: 1,
+				flags: 0,
+				flagsMask: 0,
+				loadCount:1
+			}
+		});
+	}
+
+	function addLocationsToTrips(trips_array, sensors_array, unit, times, mileage_sensor, msgs, code, result) {
+		if (!code && result) {
+			for(var arr_id in trips_array){
+				trips_array[arr_id].from.location = result[arr_id*2];
+				trips_array[arr_id].to.location = result[arr_id*2+1];
+				if (mileage_sensor) {
+					// messages
+					trips_array[arr_id].from.msg = msgs[arr_id* 2].messages[0];
+					trips_array[arr_id].to.msg = msgs[arr_id*2+1].messages[0];
+
+					trips_array[arr_id].from.odo = unit.calculateSensorValue(mileage_sensor, trips_array[arr_id].from.msg);
+					trips_array[arr_id].to.odo = unit.calculateSensorValue(mileage_sensor, trips_array[arr_id].to.msg);
+					if (trips_array[arr_id].from.odo != wialon.item.MUnitSensor.invalidValue &&
+						trips_array[arr_id].to.odo != wialon.item.MUnitSensor.invalidValue &&
+						trips_array[arr_id].from.odo > 0 && trips_array[arr_id].to.odo) {
+						// calculate mileage from sensors
+						trips_array[arr_id].odo = trips_array[arr_id].to.odo - trips_array[arr_id].from.odo;
+					} else {
+						// if invalid value or 0 - use mileage from events
+						mileage_sensor = null;
+					}
+				}
+			}
+			ctrips = getNormalizedData(trips_array, sensors_array ,unit, mileage_sensor);
+			refresh_drivers(cunit, times, ctrips);
+			$("#paginated-table").dividedByPages(ctrips, trips_to_table);
+			undisableui();
+			undisabletableui();
+		}
+	}
+
 	/// adapter for data for FULL DATA!
 	function loadUserSettings(){
 		var user = wialon.core.Session.getInstance().getCurrUser();
@@ -548,7 +624,9 @@ function exec_callback(id) {
 			}
 		}
 	}
-	function getNormalizedData(trips, sensors, unit) {
+
+	// odo - absolute mileage sensor or null
+	function getNormalizedData(trips, sensors, unit, odo) {
 		var m = [], type, status;
 		textbox_items = [$.localise.tr("Business"), $.localise.tr("Personal"), $.localise.tr("Home-Office-Home")];
 		var private_mode, home_mode, beginGeofence, endGeofence, chngd;
@@ -583,17 +661,12 @@ function exec_callback(id) {
 
 			private_mode = false;
 			// check private mode sensor
-			for(ev_id in sensors) {
+			for(var ev_id in sensors) {
 				if( sensors[ev_id].from.t <= c.to.t && sensors[ev_id].to.t >= c.from.t) {
 					status = textbox_items[1]; // Personal
 					type ='';
 					home_mode = false;
 					private_mode = true;
-					c.from.location_prvt = c.from.location;
-					c.from.location = '---';
-					c.to.location_prvt = c.to.location;
-					c.to.location = '---';
-					beginGeofence = endGeofence = '';
 					break;
 				}
 			}
@@ -614,10 +687,10 @@ function exec_callback(id) {
 				}
 			}
 
-			if(private_mode && status!=textbox_items[1] ) {
-					c.from.location = c.from.location_prvt;
-					c.to.location = c.to.location_prvt;
-			}
+			// odo - absolute mileage sensor
+			var start_odometer = getMeasureUnits({unit: unit, l: odo ? c.from.odo : c.odometer/1000});
+			var end_odometer = getMeasureUnits({unit: unit, l: odo ? c.to.odo : (c.odometer + c.distance)/1000});
+			var trip_length = getMeasureUnits({unit: unit, l: odo ? c.odo : (c.distance)/1000});
 
 			var bySensor = (private_mode && status==textbox_items[1]);
 			var data = {
@@ -631,9 +704,9 @@ function exec_callback(id) {
 				fromL: (c.from.location && !home_mode) ? c.from.location : '',
 				toL: (c.to.location && !home_mode) ? c.to.location : '',
 				duration: get_time_string(c.to.t - c.from.t),
-				start_odometer:getMeasureUnits({unit: unit, l: (c.odometer-c.distance)/1000}),
-				end_odometer:getMeasureUnits({unit: unit, l: (c.odometer)/1000}),
-				trip_length:getMeasureUnits({unit: unit, l: (c.distance)/1000}),
+				start_odometer: start_odometer,
+				end_odometer: end_odometer,
+				trip_length: trip_length,
 				driver: '---',
 				metric_m: (getMeasureUnits({
 					unit: unit
@@ -663,16 +736,6 @@ function exec_callback(id) {
 				data.fromL = data.fromL.replace(/km from/g, 'км от');
 				data.toL = data.toL.replace(/km from/g, 'км от');
 			}
-
-            if (data['uinput']!=textbox_items[1] && data.from.location_prvt && data.to.location_prvt) {
-                data.fromL = data.from.location=data.from.location_prvt;
-                data.toL = data.to.location=data.to.location_prvt;
-            } else if (data['uinput']==textbox_items[1] && data.from.location!== '---') {
-                data.from.location_prvt=data.from.location;
-                data.to.location_prvt=data.to.location;
-                data.fromL = data.from.location='---';
-                data.toL = data.to.location='---';
-            }
 
 			m.push(data);
 			// if (chngd) {//mark auto changed
@@ -1376,9 +1439,9 @@ function exec_callback(id) {
 			// $(window).trigger('updateData');
 		});
 		// Save necessary row trip or all trips
-		$('#apply_changes, .save-btn').live('click',function(e) {
+		$('#apply_changes, .save-btn').live('click', function(e) {
 			var $this = $(this);
-			$(window).trigger('updateData', $this.hasClass('save-btn') ? $this : null);
+			apply($this.hasClass('save-btn') ? $this : null);
 		});
 		$(window).on('beforeunload', function(){
 			if (changed.length) {
@@ -1706,27 +1769,20 @@ function exec_callback(id) {
 						item.closest('td').siblings('.time_change-wrap').html(time);
 					}
 
-					if (data[i]['uinput']!=textbox_items[1] && data[i].from.location_prvt && data[i].to.location_prvt) {
-						data[i].fromL = data[i].from.location=data[i].from.location_prvt;
-						data[i].toL = data[i].to.location=data[i].to.location_prvt;
-					} else if (data[i]['uinput']==textbox_items[1] && data[i].from.location!== '---') {
-						data[i].from.location_prvt=data[i].from.location;
-						data[i].to.location_prvt=data[i].to.location;
-						data[i].fromL = data[i].from.location='---';
-						data[i].toL = data[i].to.location='---';
+					// update location
+					// ToDo: we rly need it here?
+					var from = data[i].fromL,
+						to = data[i].toL;
+					if (data[i].begin.geoZone) {
+						from += (from ? '; ': '') + '<span class="geozone">' + data[i].begin.geoZone + '</span>';
 					}
+					if (data[i].end.geoZone) {
+						to += (to ? '; ': '') + '<span class="geozone">' + data[i].end.geoZone + '</span>';
+					}
+					item.closest('td').siblings('.address-from').html(from);
+					item.closest('td').siblings('.address-to').html(to);
 
-					item.closest('td').siblings('.address-from').html(data[i].from.location);
-					item.closest('td').siblings('.address-to').html(data[i].to.location);
-				// error save date from input
 				}
-				// else if (data[i].id == tripId && !data[i]['p']) {
-				// 	if (item.hasClass('message') || item.hasClass('note')) {
-				// 		item.val('')
-				// 			.closest('td')
-				// 			.addClass('error');
-				// 	}
-				// }
 			}
 		});
 
