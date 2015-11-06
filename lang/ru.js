@@ -46,7 +46,7 @@ TRANSLATIONS = {
     "Home-Office-Home": "Дом—Офис—Дом",
     "Drive home-office": "Поездка из дома в офис",
     "Drive office-home": "Поездка из офиса домой",
-    "You have unsaved changes. Are you sure you want to leave?": "Имеются несохраненные изменения. Вы действительно ходите покинуть эту страницу?",
+    "You have unsaved changes. Are you sure you want to leave?": "Имеются несохраненные изменения. Вы действительно хотите покинуть эту страницу?",
     "You have unsaved changes. Do you want to discard these changes?": "Имеются несохраненные изменения. Вы хотите отказаться от этих изменений?",
     "Choose geofences": "Выберите геозоны",
     "Home": "Дом",
