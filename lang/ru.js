@@ -85,5 +85,6 @@ TRANSLATIONS = {
     "Company name": "Компания",
     "Company reg. no.": "Регистрационный номер",
     "RRS type and version no.": "Тип и номер версии RRS",
-    "Template": "Шаблон"
+    "Template": "Шаблон",
+    "Error while export to xls": "При экспорте в XLS произошла ошибка"
 };

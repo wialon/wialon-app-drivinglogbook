@@ -1,4 +1,4 @@
-# Driver Logbook, version 2.0.1: (July 21, 2015)
+# Driver Logbook, version 2.0.2: (Nov 2, 2015)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
 ## Description:
@@ -10,7 +10,7 @@ Besides, the columns, containing user notes, can be added to the report manually
 
 ## Requirements:
  * Browser: Google Chome 20+, Firefox 15+, Safari 5+, IE 9+, Opera 10+
- * Language: русский
+ * Language: en, ru, de, sk, cs, fi
  * Components: SDK, Маршруты
  * URL params: Active SID, Base URL, Host URL
 
@@ -51,3 +51,6 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
  * v2.0.1 (July 21, 2015)
 - Use absolute mileage sensor to calculate trip distance
 - Small bugs fixed
+
+ * v2.0.2 (November 2, 2015)
+- Export to CSV and XLS added

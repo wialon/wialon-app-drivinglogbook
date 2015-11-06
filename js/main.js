@@ -37,6 +37,8 @@ function exec_callback(id) {
 	var gdh = [];
 	///
 	var LANG = "";
+	///
+	var PRINT_URL = "../print.php";
 	/// save object of localization massive
 	var Locale = "";
 	///
@@ -66,6 +68,8 @@ function exec_callback(id) {
 		tripStatus: true,
 		notes: true
 	};
+	var TableTranslations = {};
+	var TableColumns = {};
 	/// flag for check exist change for columns settings
 	var flagExistChangeSet = false;
 	var TZ = 0,
@@ -105,12 +109,11 @@ function exec_callback(id) {
 		if (!name) {
 			return null;
 		}
-		var pairs = decodeURIComponent(document.location.search.substr(1)).split("&");
+		var pairs = document.location.search.substr(1).split("&");
 		for (var i = 0; i < pairs.length; i++) {
 			var pair = pairs[i].split("=");
-			if (pair[0] === name) {
-				pair.splice(0, 1);
-				return pair.join("=");
+			if (decodeURIComponent(pair[0]) === name) {
+				return decodeURIComponent(pair[1]);
 			}
 		}
 		return null;
@@ -638,7 +641,7 @@ function exec_callback(id) {
 			home_mode = false;
 			beginGeofence = endGeofence = '';
 			chngd = true;
-			if (home && home.id && office && office.id) {
+			if (home && home.id && zone_data[home.id] && office && office.id && zone_data[office.id]) {
 				if (wialon.util.Geometry.pointInShape(zone_data[home.id].p, zone_data[home.id].t == 2 ? 0 : zone_data[home.id].w, c.from.x, c.from.y)
 					&& wialon.util.Geometry.pointInShape(zone_data[office.id].p, zone_data[office.id].t == 2 ? 0 : zone_data[office.id].w, c.to.x, c.to.y)) {
 					status = textbox_items[2]; // Home-Office
@@ -974,6 +977,8 @@ function exec_callback(id) {
 			// check if there are exists changed trips
 			if (!changed.length) {
 				$('#print-btn').prop('disabled', false);
+				$('#export-xls-btn').prop('disabled', false);
+				$('#export-csv-btn').prop('disabled', false);
 			}
 		}
 		wialon.core.Remote.getInstance().finishBatch(function(code, combinedCode) {
@@ -1063,12 +1068,16 @@ function exec_callback(id) {
 		$("#table-instruments").hide();
 		$("#paginated-table").hide();
 		$("#print-btn").hide();
+		$('#export-xls-btn').hide();
+		$('#export-csv-btn').hide();
 	}
 	/// Undisabled table ui
 	function undisabletableui() {
 		$("#table-instruments").show();
 		$("#paginated-table").show();
 		$("#print-btn").show();
+		$('#export-xls-btn').show();
+		$('#export-csv-btn').show();
 		$('#loading').removeClass('show');
 	}
 	/// Callback
@@ -1098,22 +1107,54 @@ function exec_callback(id) {
 	}
 	///
 	function ltranlate(unit) {
+		// get measure units
+		var metric_m = getMeasureUnits({unit: unit}) ? $.localise.tr("mi") : $.localise.tr("km");
 		// add TH to table
 		var t = underi18n.MessageFactory(TRANSLATIONS);
 		$('#paginated-table thead').html(_.template(underi18n.template($('#th-row').html(), t), {
 			SetTable: SetTable,
 			LANG: LANG,
-			metric_m: ( (getMeasureUnits({
-				unit: unit
-			})) ? $.localise.tr("mi") : $.localise.tr("km"))
+			metric_m: metric_m
 		}));
 		// add list
 		$('#select-table-columns-list').html(_.template(underi18n.template($('#select-table-columns-list-tpl').html(), t), {
 			SetTable: SetTable,
-			metric_m: ( (getMeasureUnits({
-				unit: unit
-			})) ? $.localise.tr("mi") : $.localise.tr("km"))
+			metric_m: metric_m
 		}));
+
+		// translations
+		TableTranslations = {
+			beginning: $.localise.tr("Beginning"),
+			end: $.localise.tr("End"),
+			duration: $.localise.tr("Duration"),
+			initLocation: $.localise.tr("Initial location"),
+			startOdometer: $.localise.tr("Initial mileage") + ", " + metric_m,
+			finalLocation: $.localise.tr("Final location"),
+			endOdometer: $.localise.tr("Final mileage") + ", " + metric_m,
+			tripLength: $.localise.tr("Mileage") + ", "+ metric_m,
+			driver: $.localise.tr("Driver"),
+			user: $.localise.tr("User"),
+			lastChanges: $.localise.tr("Last changes"),
+			tripStatus: $.localise.tr("Trip status"),
+			notes: $.localise.tr("Notes"),
+		};
+
+		// column getters
+		TableColumns = {
+			beginning: function(data) {return data.time_from.replace("<br>", " ").replace("&nbsp;", " ");},
+			end: function(data) {return data.time_to.replace("<br>", " ").replace("&nbsp;", " ");},
+			duration: function(data) {return data.duration;},
+			startOdometer: function(data) {return data.start_odometer.toFixed(2);},
+			endOdometer: function(data) {return data.end_odometer.toFixed(2);},
+			tripLength: function(data) {return data.trip_length.toFixed(2);},
+			driver: function(data) {return data.driver;},
+			user: function(data) {return data.uname;},
+			lastChanges: function(data) {return data.time_change.replace("<br>", " ").replace("&nbsp;", " ");},
+			tripStatus: function(data) {return data.message;},
+			notes: function(data) {return data.note;},
+			initLocation: function(data) {return data.fromL + (data.begin.geoZone && data.fromL ? " " + data.begin.geoZone : "");},
+			finalLocation: function(data) {return data.toL + (data.end.geoZone && data.toL ? " " + data.end.geoZone : "");}
+		};
 	}
 	function hresize(e, count) {
 		var CONST_H = 204;
@@ -1221,61 +1262,19 @@ function exec_callback(id) {
 
 		var ttrips = [];
 		var summarize = {};
-		var tdriver = null;
-
-		_.each(textbox_items.slice(0, hoh ? 3 : 2), function(v) {
-			summarize[v] = 0;
-		});
-
-		for (var i = 0, len = ctrips.length; i < len; i++) {
-			var trip = {};
-			$.extend(trip, ctrips[i]);
-			if (!trip) {
-				continue;
-			}
-			var data = trip_to_data(i, trip);
-
-			if (data) {
-				var mtext = get_trip_mtext(trip);
-				var note = get_trip_ntext(trip);
-
-				data['message'] = mtext ? mtext : ""; //"Business";
-				data['note'] = note ? note : "";
-				ttrips.push(data);
-
-				if ('driver' in data) {
-					tdriver = (tdriver && tdriver !== data.driver) ? '---' : data.driver;
-				}
-
-				if ((data['message'] === textbox_items[2] && !hoh) || !_.contains(textbox_items.slice(0, 3), data['message'])) {
-					continue;
-				}
-				summarize[data['message']] += parseFloat(data.trip_length);
-			}
-		}
+		var tdriver = getTrips(ttrips, summarize);
 
 		var list = "<% _.each(trips, function(data) { %> " + $("#print-row").html() + " <% }); %>";
 		var tcontent = _.template(list, {
 			trips: ttrips
 		});
 
-		var ttimes = $("#ranging-time-wrap").intervalWialon('get');
-
-		// remove <br>
-		var tf = en_format_time.replace('<br>', ' ');
-
-		// use timeZone:
-		var deltaTime = wialon.util.DateTime.getTimezoneOffset() + (new Date()).getTimezoneOffset() * 60;
-		var tfrom = ttimes[0] - deltaTime;
-		var tto = ttimes[1] - deltaTime;
-		var tnow = wialon.core.Session.getInstance().getServerTime() - deltaTime;
-
-		var df = $('#ranging-time-wrap').intervalWialon('__getData');
-		df = df.dateFormat || 'dd MMM yyyy';
-
-		if (tto - tfrom < 86.4e3) {
-			tto = tfrom;
-		}
+		// get report time interval
+		var ttimes = getTimes();
+		var tfrom = ttimes[0],
+			tto = ttimes[1],
+			tnow = ttimes[2],
+			df = ttimes[3];
 
 		var refund = 0;
 		if ( payment_mileage ) {
@@ -1283,8 +1282,8 @@ function exec_callback(id) {
 		}
 
 		var theader = _.template(underi18n.template($("#print-header-tmpl-" + header_tmpl).html(), t))({
-			tfrom: getTimeStr(tfrom, df),
-			tto: getTimeStr(tto, df),
+			tfrom: tfrom,
+			tto: tto,
 			uname: cunit.getName(),
 			tdriver: tdriver
 		});
@@ -1321,6 +1320,212 @@ function exec_callback(id) {
 		WinPrint.print();
 		// Hide this window on close (print)
 		WinPrint.close();
+	}
+
+	// get [from, to] string representation
+	function getTimes() {
+		var ttimes = $("#ranging-time-wrap").intervalWialon('get');
+
+		// remove <br>
+		var tf = en_format_time.replace('<br>', ' ');
+
+		// use timeZone:
+		var deltaTime = wialon.util.DateTime.getTimezoneOffset() + (new Date()).getTimezoneOffset() * 60;
+		var tfrom = ttimes[0] - deltaTime;
+		var tto = ttimes[1] - deltaTime;
+		var tnow = wialon.core.Session.getInstance().getServerTime() - deltaTime;
+
+		var df = $('#ranging-time-wrap').intervalWialon('__getData');
+		df = df.dateFormat || 'dd MMM yyyy';
+
+		if (tto - tfrom < 86.4e3) {
+			tto = tfrom;
+		}
+
+		return [getTimeStr(tfrom, df), getTimeStr(tto, df), tnow, df];
+	}
+
+	// get trips and summary, return driver
+	function getTrips(ttrips, summarize) {
+		var tdriver = null;
+		_.each(textbox_items.slice(0, hoh ? 3 : 2), function(v) {
+			summarize[v] = 0;
+		});
+
+		for (var i = 0, len = ctrips.length; i < len; i++) {
+			var trip = {};
+			$.extend(trip, ctrips[i]);
+			if (!trip) {
+				continue;
+			}
+			var data = trip_to_data(i, trip);
+
+			if (data) {
+				var mtext = get_trip_mtext(trip);
+				var note = get_trip_ntext(trip);
+
+				data['message'] = mtext ? mtext : ""; //"Business";
+				data['note'] = note ? note : "";
+				ttrips.push(data);
+
+				if ('driver' in data) {
+					tdriver = (tdriver && tdriver !== data.driver) ? '---' : data.driver;
+				}
+
+				if ((data['message'] === textbox_items[2] && !hoh) || !_.contains(textbox_items.slice(0, 3), data['message'])) {
+					continue;
+				}
+
+				summarize[data['message']] += parseFloat(data.trip_length);
+			}
+		}
+
+		return tdriver;
+	}
+
+	// export to XLS
+	function exportxls() {
+		var times = getTimes();
+
+		var tfrom = times[0],
+			tto = times[1],
+			summarize = {},
+			ttrips = [];
+
+		getTrips(ttrips, summarize);
+
+		// generate table header, get column count
+		var selected = [];
+		var table = {r:[[""]], b:1};
+		for (var col in SetTable) {
+			if (SetTable[col]) {
+				table.r[0].push(TableTranslations[col]);
+				selected.push(col);
+			}
+		}
+
+		// document header
+		var json = {sh: [{
+			t: [{
+				r: [[$.localise.tr("Unit"), cunit.getName()]]
+			}],
+			n: "Statistic"
+		}]};
+
+		var metric_m = getMeasureUnits({unit: cunit}) ? $.localise.tr("mi") : $.localise.tr("km");
+		// statistic
+		var stat = json.sh[0].t[0].r;
+		if (SetTable.beginning) {
+			stat.push([$.localise.tr("Beginning"), ttrips[0].time_from.replace("<br>", " ").replace("&nbsp;", " ")]);
+		}
+		if (SetTable.end) {
+			stat.push([$.localise.tr("End"), ttrips[ttrips.length - 1].time_to.replace("<br>", " ").replace("&nbsp;", " ")]);
+		}
+		if (SetTable.startOdometer) {
+			stat.push([$.localise.tr("Initial mileage") + ", " + metric_m, ttrips[0].start_odometer]);
+		}
+		if (SetTable.endOdometer) {
+			stat.push([$.localise.tr("Final mileage") + ", " + metric_m, ttrips[ttrips.length - 1].end_odometer]);
+		}
+		if (SetTable.tripLength) {
+			stat.push([$.localise.tr("Mileage") + ", " + metric_m, (parseFloat(ttrips[ttrips.length - 1].end_odometer) - parseFloat(ttrips[0].start_odometer)).toFixed(2)]);
+		}
+
+		// all available stats
+		for (var i in summarize) {
+			stat.push([i, summarize[i].toFixed(2)]);
+		}
+
+		for (var i = 0; i < ttrips.length; i++) {
+			row = [i + 1];
+			for (var j = 0; j < selected.length; j++) {
+				row.push(TableColumns[selected[j]](ttrips[i]));
+			}
+			table.r.push(row);
+		}
+
+		// add table to json
+		json.sh.push({t:[table], n: "Trips"});
+
+		// send print request
+		$.post(PRINT_URL, json).done(function (response, status){
+			if (response.success && status == "success") {
+				window.location.href = response.url;
+			} else {
+				alert($.localise.tr("Error while export to xls"));
+			}
+		});
+	}
+
+	// export to CVS
+	function exportcsv() {
+		var times = getTimes();
+
+		var tfrom = times[0],
+			tto = times[1],
+			summarize = {},
+			ttrips = [],
+			link = document.createElement('a'), // Create empty link
+			mimeType = 'text/csv',
+			fileName= tfrom + (tfrom == tto ? '' : '_' + tto) + '.csv',
+			cnt = '';
+
+		// prepare trips array
+		getTrips(ttrips, summarize);
+
+		// generate first row
+		var selected = [];
+		for (var col in SetTable) {
+			if (SetTable[col]) {
+				cnt += (selected.length > 0 ? ',' : '') + prepareString(TableTranslations[col]);
+				selected.push(col);
+			}
+		}
+		cnt += '\n';
+
+		// add trip data data
+		for (var i = 0; i < ttrips.length; i++) {
+			for (var j = 0; j < selected.length; j++) {
+				// prepare string and add it to content (with separator)
+				cnt += (j > 0 ? ',' : '') + prepareString(TableColumns[selected[j]](ttrips[i]));
+			}
+			cnt += '\n';
+		}
+
+		// IE10
+		if (navigator.msSaveBlob) {
+			navigator.msSaveBlob(new Blob([cnt], {type: mimeType}), fileName);
+			return this;
+		}
+		// Check support for html5 a[download]
+		if ("download" in link) {
+			link.setAttribute("download", fileName);
+		// Iframe dataURL download
+		} else {
+			link = document.createElement("iframe");
+		}
+		link.href = "data:" + mimeType + "," + encodeURIComponent(cnt);
+		link.style.display = "none";
+		document.body.appendChild(link);
+		setTimeout(function() {
+			// Trigger click to download
+			if ("download" in link) {
+				link.click();
+			}
+			// Remove link or frame
+			document.body.removeChild( link );
+		}, 250);
+	}
+
+	// prepare string to csv export
+	function prepareString(str) {
+		var result = str.toString();
+		result = result.replace('&nbsp;', ' ');
+		result = result.replace(/"/g, '""');
+		if (result.search(/("|,|\n)/g) >= 0) {
+			result = '"'+ result +'"';
+		}
+		return result;
 	}
 
 	/// for settings to columns of table
@@ -1418,6 +1623,8 @@ function exec_callback(id) {
 				id = $trip[0].id;
 			if ($(this).data('start') != $(this).val()) {
 				$('#print-btn').prop('disabled', true);
+				$('#export-xls-btn').prop('disabled', true);
+				$('#export-csv-btn').prop('disabled', true);
 				// check if btn already pushed into array
 				if (_.indexOf(changed, id) === -1) {
 					changed.push(id);
@@ -1515,6 +1722,8 @@ function exec_callback(id) {
 		})();
 
 		$("#print-btn").click(print);
+		$("#export-csv-btn").click(exportcsv);
+		$("#export-xls-btn").click(exportxls);
 		jQuery("#config-btn").click(function() {
 			if (home === null || office === null) {
 				loadUserSettings();
@@ -1763,10 +1972,14 @@ function exec_callback(id) {
 
 					if (mes['un']) {
 						item.closest('td').siblings('.uname-wrap').html(mes['un']);
+						// update ctrips
+						data[i].uname = mes['un'];
 					}
 					if (mes['tc']) {
 						var time = getTimeStr(parseInt(mes['tc']));
 						item.closest('td').siblings('.time_change-wrap').html(time);
+						// update ctrips
+						data[i].time_change = time;
 					}
 
 					// update location
@@ -1824,6 +2037,15 @@ function exec_callback(id) {
 
 	/// A function to execute after the DOM is ready.
 	$(document).ready(function() {
+		// detect right print service url
+		$.ajax(PRINT_URL, {
+			complete: function(response, status) {
+				if (status != "success") {
+					PRINT_URL = "http://apps.wialon.com/print.php"
+				}
+			}
+		});
+
 		disabletableui();
 		var url = get_html_var("baseUrl");
 		if (!url) {
@@ -1836,7 +2058,7 @@ function exec_callback(id) {
 		$('#execute-btn').hide();
 
 		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs"]) == -1)) {
+		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs", "fi"]) == -1)) {
 			LANG = "en";
 		}
 		$.localise('lang/', {

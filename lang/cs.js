@@ -85,5 +85,6 @@ TRANSLATIONS = {
     "Company name": "",
     "Company reg. no.": "",
     "RRS type and version no.": "",
-    "Template": ""
+    "Template": "",
+    "Error while export to xls": ""
 };
