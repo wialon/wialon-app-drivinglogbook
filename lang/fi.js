@@ -86,5 +86,5 @@ TRANSLATIONS = {
     "Company reg. no.": "Y-tunnus",
     "RRS type and version no.": "RRS tyyppi ja versionro",
     "Template": "Malli",
-    "Error while export to xls": ""
+    "Error while export to xls": "Vientivirhe - XLS"
 };

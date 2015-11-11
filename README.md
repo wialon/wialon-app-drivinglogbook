@@ -10,7 +10,7 @@ Besides, the columns, containing user notes, can be added to the report manually
 
 ## Requirements:
  * Browser: Google Chome 20+, Firefox 15+, Safari 5+, IE 9+, Opera 10+
- * Language: en, ru, de, sk, cs, fi
+ * Language: en, ru, de, sk, cs, fi, ee
  * Components: SDK, Маршруты
  * URL params: Active SID, Base URL, Host URL
 
@@ -54,3 +54,4 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
 
  * v2.0.2 (November 2, 2015)
 - Export to CSV and XLS added
+- Estonian language added

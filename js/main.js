@@ -2058,7 +2058,7 @@ function exec_callback(id) {
 		$('#execute-btn').hide();
 
 		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs", "fi"]) == -1)) {
+		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs", "fi", "ee"]) == -1)) {
 			LANG = "en";
 		}
 		$.localise('lang/', {
