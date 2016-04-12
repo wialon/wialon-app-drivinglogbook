@@ -1,4 +1,4 @@
-# Driver Logbook, version 2.0.2: (Nov 2, 2015)
+# Driver Logbook, version 2.0.3: (Apr 8, 2016)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
 ## Description:
@@ -55,3 +55,8 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
  * v2.0.2 (November 2, 2015)
 - Export to CSV and XLS added
 - Estonian language added
+
+ * v2.0.3: (April 8, 2016)
+- Export to XLS fixed
+- Translations updated
+- Minor bugs fixed
