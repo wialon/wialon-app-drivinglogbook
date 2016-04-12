@@ -38,7 +38,7 @@ function exec_callback(id) {
 	///
 	var LANG = "";
 	///
-	var PRINT_URL = "../print.php";
+	var PRINT_URL = "..";
 	/// save object of localization massive
 	var Locale = "";
 	///
@@ -1278,7 +1278,8 @@ function exec_callback(id) {
 
 		var refund = 0;
 		if ( payment_mileage ) {
-			refund = Math.floor(summarize[textbox_items[0]]/payment_mileage)*payment_more+(summarize[textbox_items[0]]%payment_mileage)*payment_less;
+			refund = Math.floor(summarize[textbox_items[0]] / payment_mileage) * payment_mileage * payment_more;
+			refund += (summarize[textbox_items[0]] % payment_mileage) * payment_less;
 		}
 
 		var theader = _.template(underi18n.template($("#print-header-tmpl-" + header_tmpl).html(), t))({
@@ -1448,9 +1449,9 @@ function exec_callback(id) {
 		json.sh.push({t:[table], n: "Trips"});
 
 		// send print request
-		$.post(PRINT_URL, json).done(function (response, status){
+		$.post(PRINT_URL + '/print.php', {data: JSON.stringify(json)}).done(function (response, status){
 			if (response.success && status == "success") {
-				window.location.href = response.url;
+				window.location.href = PRINT_URL + response.url;
 			} else {
 				alert($.localise.tr("Error while export to xls"));
 			}
@@ -2038,10 +2039,10 @@ function exec_callback(id) {
 	/// A function to execute after the DOM is ready.
 	$(document).ready(function() {
 		// detect right print service url
-		$.ajax(PRINT_URL, {
+		$.ajax(PRINT_URL + '/print.php', {
 			complete: function(response, status) {
 				if (status != "success") {
-					PRINT_URL = "http://apps.wialon.com/print.php"
+					PRINT_URL = "http://apps.wialon.com"
 				}
 			}
 		});

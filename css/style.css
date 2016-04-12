@@ -84,6 +84,8 @@
     }
 
 	#logo {
+		width: 32px;
+		height: 32px;
 		margin: 12px 0px 16px 28px;
 	}
 
