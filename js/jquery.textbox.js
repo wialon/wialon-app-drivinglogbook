@@ -105,7 +105,18 @@ function handler(event) {
 			var li = $("<li />").append($("<a href='#' " + nowrap + ">"+item+"</a>"));
 			list.append(li);
 		};
-		
+		var addItems = function(list, items) {
+            var html = "";
+            var nowrap = "";
+            if ($.browser && $.browser.msie) {
+                nowrap = "style='white-space: normal;'";
+            }
+            for (var i = 0; i < items.length; i++) {
+                html += "<li><a href='#' " + nowrap + ">"+items[i]+"</a></li>";
+            }
+            list.html(html);
+		};
+
 		// Set items to the list
 		var setItems = function(list, items) {
 			list.html("");
@@ -119,73 +130,76 @@ function handler(event) {
 					list.append(li);
 				}
 			}
-		};	
-			
+		};
+
 		$.fn.textbox.defaults = {
 			items:      [],     // Default list
 			onSelect:   null,   // Callback for item selected
 			onChange:   null,    // Callback for text changed
 			minWidth: 140
 		};
-		
+
 		// default options used on initialisation
 		// and arguments used on later calls
 		var opts = $.extend({}, $.fn.textbox.defaults, options);
-		var args = arguments;	
-		
+		var args = arguments;
+
 		/**
 		 * Entry point
-		 */   
+		 */
 		return this.each(function() {
 			// Initialisation
 			if(typeof $.data(this,"textbox") == "undefined") {
-				var $t   = $(this);
-				var height = this.offsetHeight;
-				var width  = this.offsetWidth;				
-			
+                var $t   = $(this);
+				//var height = this.offsetHeight;
+				var width  = 0; //this.offsetWidth;
 				var selected = false;
-				
+
 				// The drop down list
-				var list = $("<ul class='textboxlist' />").insertAfter($t.parent()).height(0).css("min-width", (width ? width + 19 : opts['minWidth']) + "px").mousedown(function(e) {
+				var list = $("<ul class='textboxlist' />").css("min-width", (width ? width + 19 : opts['minWidth']) + "px").mousedown(function(e) {
 					if (e.target.tagName == "A" || e.target.tagName == "a") {
 						list.toggle();
 						$t.val($(e.target).text());
 						$t.change();
-							
+
 						if(typeof opts.onSelect == "function")
 							 opts.onSelect($(e.target).text());
 					}
 					return false;
-				});			
-				
-				var arrow = $("<select class='textboxarrow' size='1'><option value='' /></select>").insertAfter($t).mousedown(function(e) {				
+				});
+				var arrow = $("<select class='textboxarrow' size='1'><option value='' /></select>").insertAfter($t).mousedown(function(e) {
 					list.find("a").css("font-size", $t.css("font-size"));
 					if (llist !== null) {
-						llist.hide();
+						llist.detach();
 					}
-
-					var offset = $($t).position();
+					var offset = $($t).offset();
+                    $(list).appendTo("body");
 					$(list).css("left", offset.left);
-					$(list).css("top", parseInt(offset.top) + parseInt($($t).height()));
-						
+					var top = parseInt(offset.top) + parseInt($($t).height());
+					if (top + $(list).height() > $(window).height()) {
+                        top -= parseInt($($t).height()) + $(list).height();
+					}
+					$(list).css("top", top);
+
+
 					llist = list;
 					$(this).attr("disabled", true);
-					list.height(160);										
-					list.toggle();					
-					
+					list.height(160);
+					list.toggle();
+
 					if (!list.attr("display") == "none") {
 						list.attr("display", "inline");
 					}
 					window.setTimeout(enableSelect, 100);
 					return false;
 				});
-
 				$("#table-wrap").bind('mousewheel', function () {
 					if (llist) {
-						$(llist).hide();
+						$(llist).detach();
+                        llist = null;
 					}
 				});
-				
+
 				arrow.mouseover(function() {
 					$t.parent().addClass("textboxcontainerhover");
 					return false;
@@ -193,7 +207,7 @@ function handler(event) {
 					$t.parent().removeClass("textboxcontainerhover");
 					return false;
 				});
-				
+
 				$t.mouseover(function() {
 					$t.parent().addClass("textboxcontainerhover");
 					return false;
@@ -221,30 +235,31 @@ function handler(event) {
 						// When the user presses return, lose focus
 						if(e.keyCode == 13) {
 							$(this).blur();
-							list.hide();
+							list.detach();
 						}
 					});
 				});
-				
+
 				// Store ths list so it can be added to in later calls
 				$.data(this,"textbox",{list:list});
-				
+
 				// Setup the initial list
-				$.each(opts.items,function(i) {
-					addItem(list,this);
-				});
-				
+                addItems(list, opts.items);
+
 				$('body').mousedown(function(e) {
 					if (e.target.id != $t.attr("id")) {
-						list.hide();
+						list.detach();
 					}
 				});
-				
+				$(window).resize(function() {
+					list.detach();
+				});
+
 				var enableSelect = function() {
 					arrow.removeAttr("disabled");
 				};
 			}
-			
+
 			// The plugin has already been created on this object
 			// must be an external call to modify
 			else if(args[0] == "add")

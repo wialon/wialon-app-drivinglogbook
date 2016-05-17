@@ -86,5 +86,13 @@ TRANSLATIONS = {
     "Company reg. no.": "Ettevõtte registrikood",
     "RRS type and version no.": "RRS’i tüüp ja versiooninumber",
     "Template": "Tõmmis",
-    "Error while export to xls": ""
+    "Error while export to xls": "",
+    "Interface": "",
+    "Group by day": "",
+    "Show summary": "",
+    "Mileage source": "",
+    "Internal trips odometer": "",
+    "Absolute mileage sensor": "",
+    "Mileage counter": "",
+    "Initial and final mileage": ""
 };

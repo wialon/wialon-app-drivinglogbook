@@ -1,4 +1,4 @@
-# Driver Logbook, version 2.0.3: (Apr 8, 2016)
+# Driver Logbook, version 2.1.0: (May 2, 2016)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
 ## Description:
@@ -60,3 +60,7 @@ Working with applications in the GPS tracking system: http://docs.gurtam.com/en/
 - Export to XLS fixed
 - Translations updated
 - Minor bugs fixed
+
+ * v2.1.0: (May 2, 2016)
+- Group by days
+- Counters added

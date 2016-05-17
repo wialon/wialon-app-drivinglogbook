@@ -86,5 +86,13 @@ TRANSLATIONS = {
     "Company reg. no.": "Y-tunnus",
     "RRS type and version no.": "RRS tyyppi ja versionro",
     "Template": "Malli",
-    "Error while export to xls": "Vientivirhe - XLS"
+    "Error while export to xls": "Vientivirhe - XLS",
+    "Interface": "Taulukko",
+    "Group by day": "Päiväyksen mukaan",
+    "Show summary": "Näytä yhteenveto",
+    "Mileage source": "",
+    "Internal trips odometer": "",
+    "Absolute mileage sensor": "",
+    "Mileage counter": "",
+    "Initial and final mileage": ""
 };

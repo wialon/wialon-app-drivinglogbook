@@ -1,7 +1,12 @@
 (function( $ ) {
 	$.fn.dividedByPages = function (data, renders) {
+
+		$("#tabstat").hide();
+		$("#pagestat").show();
+		$("#nrowonpage").show();
+
 		var maxRows = parseInt($("#nrowonpage").val());
-		
+
 		var cData = data;
 		var cTable = $(this);
 		var cRowCount = data.length;
@@ -9,7 +14,7 @@
         var $pNumWrap = $('#pcontrol');
         var MaxBtnPagin = getLengthVisibleList();
 
-		
+
 		cTable.off("refresh");
 		cTable.on("refresh", function (event, data) {
 			cData = data['data'];
@@ -30,10 +35,10 @@
 
                 renderList(cPage);
 			} else {
-				$("#page_selector").val(cPage);	
+				$("#page_selector").val(cPage);
 			}
-		});		
-		
+		});
+
 		cTable.off("changerowonpage");
 		cTable.on("changerowonpage", function (event, nrow) {
 			if (maxRows !== parseInt(nrow)) {
@@ -73,13 +78,13 @@
 				count++;
 			return count;
 		}
-		
+
 		function added (rows, sindex) {
 			cTable.children("tbody").empty();
 			renders(sindex, rows);
 			updatePageState();
 		}
-		
+
 		function updatePageState () {
 			var ifrom = cPage * maxRows - maxRows + 1;
 			var ito = cPage * maxRows;
@@ -96,7 +101,7 @@
 
             var text = wialon.util.String.sprintf($.localise.tr(str), pages);
 			$("#pagestat").text(text);
-			$("#page_selector").val(parseInt(ifrom / maxRows + 1));	
+			$("#page_selector").val(parseInt(ifrom / maxRows + 1));
 			$("#cpages").text(getCountPages());
 
             updatePrevNextCount(cPage, pages);
@@ -109,7 +114,7 @@
 		var cStart = $('#top');
 
 		cNext.removeClass('disabled');
-		cEnd.removeClass('disabled');	
+		cEnd.removeClass('disabled');
 
 		if (cRowCount < maxRows) {
 			cPrev.addClass('disabled');
@@ -121,18 +126,18 @@
 		} else {
 			added(cData.slice(0, maxRows), 0);
 		}
-		
+
 		cPrev.addClass('disabled');
-		cStart.addClass('disabled');	
-		
+		cStart.addClass('disabled');
+
 		function prev (event, isforcibly) {
 			if (!isforcibly)
 				if (cPrev.hasClass('disabled'))
 					return false;
-			
+
 			var ndata = null;
 			var prevPage = cPage - 1;
-			var sindex = 0; 
+			var sindex = 0;
 			if (cPage > 1) {
 				sindex = (prevPage-1)*maxRows;
 				ndata = cData.slice(sindex, prevPage*maxRows);
@@ -140,8 +145,8 @@
 				sindex = prevPage*maxRows;
 				ndata = cData.slice(sindex, cPage*maxRows);
 			}
-			
-			if (prevPage < 2) {		
+
+			if (prevPage < 2) {
 				cPrev.addClass('disabled');
 				cStart.addClass('disabled');
 				cPage = 1;
@@ -150,7 +155,7 @@
 				cStart.removeClass('disabled');
 				cPage = prevPage;
 			}
-			
+
 			var count = getCountPages();
 			if (prevPage < count) {
 				cNext.removeClass('disabled');
@@ -166,47 +171,47 @@
 		cPrev.off("click");
 		cPrev.click(prev);
 
-		function next () {	
+		function next () {
 			if (cNext.hasClass('disabled'))
 				return false;
 
-			var nextPage = cPage + 1;	
-			var sindex = cPage*maxRows; 
+			var nextPage = cPage + 1;
+			var sindex = cPage*maxRows;
 			var ndata = cData.slice(sindex, nextPage*maxRows);
 			var nnlen = cData.length - nextPage*maxRows;
 			if (ndata.length < maxRows || nnlen < 1) {
 				cNext.addClass('disabled');
 				cEnd.addClass('disabled');
 			}
-			
+
 			cPrev.removeClass('disabled');
 			cStart.removeClass('disabled');
 			cPage = nextPage;
-			
+
 			added(ndata, sindex);
 			return false;
-		}	
+		}
 		cNext.off("click");
 		cNext.click(next);
 
 		function end () {
 			if (cEnd.hasClass('disabled'))
 				return false;
-			
+
 			cPage = parseInt(cRowCount / maxRows) + 1;
 			var sindex = maxRows*(cPage-1);
 			var ndata = cData.slice(sindex);
 			if (ndata.length < 1) {
-				sindex = maxRows*(cPage-2); 
+				sindex = maxRows*(cPage-2);
 				ndata = cData.slice(sindex);
 				cPage--;
-			}		
-			
+			}
+
 			cNext.addClass('disabled');
 			cPrev.removeClass('disabled');
-			cEnd.addClass('disabled');	
+			cEnd.addClass('disabled');
 			cStart.removeClass('disabled');
-			
+
 			added(ndata, sindex);
 			return false;
 		}
@@ -216,20 +221,20 @@
 		function start () {
 			if (cStart.hasClass('disabled'))
 				return false;
-			
-			cPage = 1;		
+
+			cPage = 1;
 			cNext.removeClass('disabled');
 			cPrev.addClass('disabled');
 			cEnd.removeClass('disabled');
-			cStart.addClass('disabled');		
-			
+			cStart.addClass('disabled');
+
 			added(cData.slice(0, maxRows), 0);
 			return false;
 		}
 
         function getLengthVisibleList(){
             var itemWidth = 43;
-            var W = $('.table-footer').width() - 230;
+            var W = ($('.table-footer').width() || $(document).width()) - 230;
             return Math.floor(W/itemWidth) - 4;
         }
 

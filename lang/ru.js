@@ -86,5 +86,13 @@ TRANSLATIONS = {
     "Company reg. no.": "Регистрационный номер",
     "RRS type and version no.": "Тип и номер версии RRS",
     "Template": "Шаблон",
-    "Error while export to xls": "При экспорте в XLS произошла ошибка"
+    "Error while export to xls": "При экспорте в XLS произошла ошибка",
+    "Interface": "Таблица",
+    "Group by day": "Группировка по суткам",
+    "Show summary": "Сводка",
+    "Mileage source": "Источник данных",
+    "Internal trips odometer": "Внутренний алгоритм",
+    "Absolute mileage sensor": "Датчик пробега",
+    "Mileage counter": "Счетчик пробега",
+    "Initial and final mileage": "Расчет пробега"
 };

@@ -73,8 +73,8 @@ TRANSLATIONS = {
     "Show": "",
     "Header": "",
     "Footer": "",
-    "Taxable payment": "",
-    "Payment mileage": "",
+    "Taxable payment": "Tax payment",
+    "Payment mileage": "Taxable mileage",
     "Total refund": "",
     "Show payment": "",
     "Date": "",
@@ -86,5 +86,13 @@ TRANSLATIONS = {
     "Company reg. no.": "",
     "RRS type and version no.": "",
     "Template": "",
-    "Error while export to xls": ""
+    "Error while export to xls": "",
+    "Interface": "Table",
+    "Group by day": "Group by date",
+    "Show summary": "",
+    "Mileage source": "Data source",
+    "Internal trips odometer": "Internal algorithm",
+    "Absolute mileage sensor": "Mileage sensor",
+    "Mileage counter": "Mileage counter",
+    "Initial and final mileage": "Mileage calculation"
 };

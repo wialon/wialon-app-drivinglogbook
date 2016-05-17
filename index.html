@@ -39,6 +39,7 @@
 		<script src="./js/jquery.textbox.js"></script>
 		<script src="./js/jquery.autocomplete.js"></script>
 		<script src="./js/table.js"></script>
+		<script src="./js/daytable.js"></script>
 		<link rel="stylesheet" type="text/css" href="//apps.wialon.com/plugins/wialon/interval/interval.wialon.css"/>
 		<script src="./js/main.js"></script>
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
@@ -48,13 +49,13 @@
 		<!-- BEGIN: Underscore Template Definition. See: http://underscorejs.org/#template. -->
 		<script type="text/template" class="template" id="th-row">
 		<tr>
-			<th id="nrowonpage-wrap"></th>
+			<th></th>
 			<% if (SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
 			<% if (SetTable.end) { %><th><%_ End %></th><% } %>
 			<% if (SetTable.duration) { %><th><%_ Duration %></th><% } %>
-			<% if (SetTable.initLocation) { %><th><%_ Initial location %></th><% } %>
+			<% if (SetTable.initLocation) { %><th class="address-cell"><%_ Initial location %></th><% } %>
 			<% if (SetTable.startOdometer) { %><th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th><% } %>
-			<% if (SetTable.finalLocation) { %><th><%_ Final location %></th><% } %>
+			<% if (SetTable.finalLocation) { %><th class="address-cell"><%_ Final location %></th><% } %>
 			<% if (SetTable.endOdometer) { %><th><%_ Final mileage %>,&nbsp;<%= metric_m %></th><% } %>
 			<% if (SetTable.tripLength) { %><th><%_ Mileage %>,&nbsp;<%= metric_m %></th><% } %>
 			<% if (SetTable.driver) { %><th><%_ Driver %></th><% } %>
@@ -75,22 +76,24 @@
 			</th>
 			<% } %>
 			<% if (SetTable.notes) { %><th><%_ Notes %></th><% } %>
-			<th id="expand-menu"></th>
+			<th id="expand-menu">
+				<div class="expand-menu-wrap" id="select-table-columns-wrap">
+					<a id="select-table-columns" href="#"></a>
+				</div>
+			</th>
 		</tr>
 		</script>
 		<script type="text/template" class="template" id="row">
 		<tr id="<%= id %>">
-			<td>
-				<span class="number"><%= index %>.</span>
-			</td>
+			<td><%= index %></td>
 			<% if (SetTable.beginning) { %><td class="td-date"><%= time_from %></td><% } %>
 			<% if (SetTable.end) { %><td class="td-date"><%= time_to %></td> <% } %>
 			<% if (SetTable.duration) { %><td><%= duration %></td> <% } %>
 			<% if (SetTable.initLocation) { %><td class="address-cell address-from"><%= fromL %><% if( begin.geoZone && fromL !='---' ){ %><% if( fromL ){ %>; <% } %><span class="geozone"><%= begin.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-			<% if (SetTable.startOdometer) { %><td><%= start_odometer.toFixed(2) %></td> <% } %>
+			<% if (SetTable.startOdometer) { %><td><%= start_odometer !== null ? start_odometer.toFixed(2) : "---" %></td> <% } %>
 			<% if (SetTable.finalLocation) { %><td class="address-cell address-to"><%= toL %><% if( end.geoZone && toL !='---' ){ %><% if( toL ){ %>; <% } %><span class="geozone"><%= end.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-			<% if (SetTable.endOdometer) { %><td><%= end_odometer.toFixed(2) %></td> <% } %>
-			<% if (SetTable.tripLength) { %><td><%= trip_length.toFixed(2) %></td> <% } %>
+			<% if (SetTable.endOdometer) { %><td><%= end_odometer !== null ? end_odometer.toFixed(2) : "---" %></td> <% } %>
+			<% if (SetTable.tripLength) { %><td><%= trip_length ? trip_length.toFixed(2) : "---" %></td> <% } %>
 			<% if (SetTable.driver) { %><td><%= driver %></td> <% } %>
 			<% if (SetTable.user) { %><td class="uname-wrap"><%= uname %></td> <% } %>
 			<% if (SetTable.lastChanges) { %><td class="td-date time_change-wrap"><%= time_change %></td> <% } %>
@@ -113,6 +116,25 @@
 					<div class="save-btn"></div>
 				</div>
 			</td><% } %>
+		</tr>
+		</script>
+		<script type="text/template" class="template" id="summary-row">
+		<tr class="summary">
+			<td><!-- index --></td>
+			<% if (SetTable.beginning) { %><td></td><% } %>
+			<% if (SetTable.end) { %><td></td> <% } %>
+			<% if (SetTable.duration) { %><td><%= get_time_string(duration) %></td> <% } %>
+			<% if (SetTable.initLocation) { %><td class="address-cell address-from"></td> <% } %>
+			<% if (SetTable.startOdometer) { %><td><%= start_odometer !== null ? start_odometer.toFixed(2) : '---' %></td> <% } %>
+			<% if (SetTable.finalLocation) { %><td class="address-cell address-to"></td> <% } %>
+			<% if (SetTable.endOdometer) { %><td><%= end_odometer ? end_odometer.toFixed(2) : '---' %></td> <% } %>
+			<% if (SetTable.tripLength) { %><td><%= trip_length ? trip_length.toFixed(2) : '---' %></td> <% } %>
+			<% if (SetTable.driver) { %><td></td> <% } %>
+			<% if (SetTable.user) { %><td class="uname-wrap"></td> <% } %>
+			<% if (SetTable.lastChanges) { %><td class="td-date time_change-wrap"></td> <% } %>
+			<% if (SetTable.tripStatus) { %><td class="cell-table-input"></td><% } %>
+			<% if (SetTable.notes) { %><td></td><% } %>
+			<% if (typeof print === "underfined") { %><td></td><% } %>
 		</tr>
 		</script>
 		<script type="text/template" class="template" id="select-table-columns-list-tpl">
@@ -186,6 +208,9 @@
 						border: 1px solid #000 !important;
 						padding: 3px !important;
 					}
+					.summary {
+						font-weight: bolder;
+					}
 				</style>
 			</head>
 			<body style="background:none !important;">
@@ -193,7 +218,7 @@
 				<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
 					<thead>
 						<tr>
-							<th id="nrowonpage-wrap"></th>
+							<th></th>
 							<% if (SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
 							<% if (SetTable.end) { %><th><%_ End %></th><% } %>
 							<% if (SetTable.duration) { %><th><%_ Duration %></th><% } %>
@@ -218,21 +243,21 @@
 	<script type="text/template" class="template" id="print-row">
 	<tr>
 		<td>
-			<span class="number"><%= data.index %>.</span>
+			<span class="number"><%= data.index + diff %>.</span>
 		</td>
-		<% if (data.SetTable.beginning) { %><td><%= data.time_from %></td><% } %>
-		<% if (data.SetTable.end) { %><td><%= data.time_to %></td> <% } %>
-		<% if (data.SetTable.duration) { %><td><%= data.duration %></td> <% } %>
-		<% if (data.SetTable.initLocation) { %><td><%= data.fromL %><% if( data.begin.geoZone ){ %><% if( data.fromL ){ %>; <% } %><i class="geozone"><%= data.begin.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-		<% if (data.SetTable.startOdometer) { %><td><%= data.start_odometer.toFixed(2) %></td> <% } %>
-		<% if (data.SetTable.finalLocation) { %><td><%= data.toL %><% if( data.end.geoZone ){ %><% if( data.toL ){ %>; <% } %><i class="geozone"><%= data.end.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
-		<% if (data.SetTable.endOdometer) { %><td><%= data.end_odometer.toFixed(2) %></td> <% } %>
-		<% if (data.SetTable.tripLength) { %><td><%= data.trip_length.toFixed(2) %></td> <% } %>
-		<% if (data.SetTable.driver) { %><td><%= data.driver %></td> <% } %>
-		<% if (data.SetTable.user) { %><td><%= data.uname %></td> <% } %>
-		<% if (data.SetTable.lastChanges) { %><td><%= data.time_change %></td> <% } %>
-		<% if (data.SetTable.tripStatus) { %><td><%= data.message %></td><% } %>
-		<% if (data.SetTable.notes) { %><td><%= data.note %></td><% } %>
+		<% if (SetTable.beginning) { %><td><%= data.time_from %></td><% } %>
+		<% if (SetTable.end) { %><td><%= data.time_to %></td> <% } %>
+		<% if (SetTable.duration) { %><td><%= data.duration %></td> <% } %>
+		<% if (SetTable.initLocation) { %><td><%= data.fromL %><% if( data.begin.geoZone ){ %><% if( data.fromL ){ %>; <% } %><i class="geozone"><%= data.begin.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+		<% if (SetTable.startOdometer) { %><td><%= data.start_odometer !== null ? data.start_odometer.toFixed(2) : "---" %></td> <% } %>
+		<% if (SetTable.finalLocation) { %><td><%= data.toL %><% if( data.end.geoZone ){ %><% if( data.toL ){ %>; <% } %><i class="geozone"><%= data.end.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+		<% if (SetTable.endOdometer) { %><td><%= data.end_odometer ? data.end_odometer.toFixed(2) : "---" %></td> <% } %>
+		<% if (SetTable.tripLength) { %><td><%= data.trip_length ? data.trip_length.toFixed(2) : "---" %></td> <% } %>
+		<% if (SetTable.driver) { %><td><%= data.driver %></td> <% } %>
+		<% if (SetTable.user) { %><td><%= data.uname %></td> <% } %>
+		<% if (SetTable.lastChanges) { %><td><%= data.time_change %></td> <% } %>
+		<% if (SetTable.tripStatus) { %><td><%= data.message %></td><% } %>
+		<% if (SetTable.notes) { %><td><%= data.note %></td><% } %>
 	</tr>
 	</script>
 	<script type="text/template" class="template" id="print-header-tmpl-1">
@@ -513,9 +538,9 @@
 			<tbody style="vertical-align: middle;border:0 none;">
 				<% if (start.SetTable.beginning) { %><td><%= start.time_from %></td><% } %>
 				<% if (start.SetTable.end) { %><td><%= end.time_to %></td><% } %>
-				<% if (start.SetTable.startOdometer) { %><td><%= start.start_odometer %></td><% } %>
-				<% if (start.SetTable.endOdometer) { %><td><%= end.end_odometer %></td><% } %>
-				<% if (start.SetTable.tripLength) { %><td><%= (parseFloat(end.end_odometer) - parseFloat(start.start_odometer)).toFixed(2) %></td><% } %>
+				<% if (start.SetTable.startOdometer) { %><td><%= start.start_odometer !== null ? start.start_odometer : "---" %></td><% } %>
+				<% if (start.SetTable.endOdometer) { %><td><%= end.end_odometer ? end.end_odometer : "---" %></td><% } %>
+				<% if (start.SetTable.tripLength) { %><td><%= ctabs.summary.trip_length ? ctabs.summary.trip_length.toFixed(2) : "---" %></td><% } %>
 				<% _.each(summarize, function(v) { %>
 					<td><%= v.toFixed(2) %></td>
 				<% }); %>
@@ -644,10 +669,9 @@
 		</div>
 		<div id="loading"></div>
 	</div>
-	<div style="top: 50px; left: 0px; width: 100%;">
-		<div class="container">
-			<div id="data-inputs" class="clearfix">
-				<div class="pull-left">
+	<div class="container full-size">
+		<div id="data-inputs" class="clearfix">
+			<div class="pull-left">
 				<select class="input-select" id="units-select" style="width: 200px;"></select>
 			</div>
 			<div id="ranging-time-wrap" class="ranging-time-wrap pull-left">
@@ -665,47 +689,47 @@
 				</div>
 			</div>
 		</div>
-		<div class="separator"></div>
+		<div id="page-selector" class="container with-offset" style="display: none;">
+			<div class="table-footer">
+				<select id="nrowonpage" class="input-select left">
+					<option value="10">10</option>
+					<option value="25">25</option>
+					<option value="50">50</option>
+					<option value="100">100</option>
+				</select>
+				<div id="table-instruments" class="clearfix">
+					<div class="pgroup-btn-wrap footer-center pull-left ">
+						<input id="top" type="button" class="btn" value=""><input id="prev" type="button" class="btn" value=""><span id="pcontrol" class="pcontrol">
+						</span><input id="next" type="button" class="btn" value=""><input id="last" type="button" class="btn" value="">
+					</div>
+					<div class="pgroup pull-left">
+						<i id="pagestat"></i>
+						<div id="tabstat" style="display:none;"></div>
+					</div>
+					<div class="pull-right">
+						<div>
+							<input type="button" id="apply_changes" class="btn" value="Apply" style="display: inline-block;">
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
 		<div id="table-wrap">
-			<div class="expand-menu-wrap" id="select-table-columns-wrap">
-				<a id="select-table-columns" href="#"></a>
-				<ul id="select-table-columns-list" class="expand-menu">
-					<!-- template: select-table-columns-list-tpl -->
-				</ul>
+			<div class="scroll-wrapper">
+				<table id="paginated-table" class="ptable">
+					<thead></thead>
+					<tbody></tbody>
+				</table>
 			</div>
-			<select id="nrowonpage" class="input-select">
-				<option value="10">10</option>
-				<option value="25">25</option>
-				<option value="50">50</option>
-				<option value="100">100</option>
-			</select>
-			<table id="paginated-table" class="ptable">
-				<thead>
-					<!-- template: th-row -->
-				</thead>
-			<tbody></tbody>
-		</table>
-	</div>
-</div>
-</div>
-<div class="container">
-<div class="table-footer">
-	<div id="table-instruments" class="clearfix">
-		<div class="pgroup-btn-wrap footer-center pull-left ">
-			<input id="top" type="button" class="btn" value=""><input id="prev" type="button" class="btn" value=""><span id="pcontrol" class="pcontrol">
-			</span><input id="next" type="button" class="btn" value=""><input id="last" type="button" class="btn" value="">
-		</div>
-		<div class="pgroup pull-left">
-			<i id="pagestat"></i>
-		</div>
-		<div class="pull-right">
-			<div>
-				<input type="button" id="apply_changes" class="btn" value="Apply" style="display: inline-block;">
-			</div>
+			<table id="paginated-table-footer" class="ptable">
+				<tfoot></tfoot>
+			</table>
+			<ul id="select-table-columns-list" class="expand-menu">
+				<!-- template: select-table-columns-list-tpl -->
+			</ul>
 		</div>
 	</div>
-</div>
-</div>
+
 <script type="text/template" class="template" id="modal-tpl">
 <div class="modal">
 	<div class="modal-header">
@@ -713,6 +737,24 @@
 		<%_ Settings %>
 	</div>
 	<div class="modal-body">
+		<h3><%_ Initial and final mileage %></h3>
+		<div>
+			<label><%_ Mileage source %>:</label>
+			<span><select name="header_tmpl" id="mileage_values_select">
+				<option value="0"><%_ Internal trips odometer %></option>
+				<option value="1"><%_ Absolute mileage sensor %></option>
+				<option value="2"><%_ Mileage counter %></option>
+			</select></span>
+		</div>
+		<h3><%_ Interface %></h3>
+		<div>
+			<label for="group_by_date"><%_ Group by day %>:</label>
+			<span><input type="checkbox" name="group_by_date" id="group_by_date"></span>
+		</div>
+		<div>
+			<label for="show_summary"><%_ Show summary %>:</label>
+			<span><input type="checkbox" name="show_summary" id="show_summary"></span>
+		</div>
 		<h3><%_ Choose geofences %></h3>
 		<div>
 			<label for="home_geofence"><%_ Home %>:</label>
