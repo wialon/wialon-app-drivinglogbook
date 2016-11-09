@@ -44,6 +44,16 @@
 		<script src="./js/main.js"></script>
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
 		<script src="//apps.wialon.com/plugins/wialon/interval/interval.wialon.js"></script>
+		<script>
+			var availableLanguages=null; 
+			var documentationLink=null;
+			var is_white=null;
+			function appPredefineVariables(app_langs,doc_link,is_whitelabeled){
+				availableLanguages=app_langs;
+				documentationLink=is_whitelabeled?null:doc_link;
+				is_white=is_whitelabeled;
+			}
+		</script>
 	</head>
 	<body>
 		<!-- BEGIN: Underscore Template Definition. See: http://underscorejs.org/#template. -->

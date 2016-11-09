@@ -1,62 +1,65 @@
 {
-	"name": "driving_logbook",
-	"url_name": "drivinglogbook",
-	"title": "Driving Logbook",
-	"description": "Driving Logbook is an application to prepare tax reports determining actual use of the company car for private or business purposes.",
-	"author": {
-		"name": "Alexander Chernetsky",
-		"url": "http://gurtam.com"
-	},
-	"licenses": [
-		{
-			"type":" MIT",
-			"url": "https://github.com/wialon/wialon-app-drivinglogbook/blob/master/LICENSE-MIT"
-		}
-	],
-	"dependencies": {
-		"jquery": "1.8.3",
-		"jquery.ui": "1.10.0"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/wialon/wialon-app-drivinglogbook"
-	},
-	"modules": [
-		"sdk"
-	],
-    "docs": {},
-	"params": [
-		"Active SID",
-		"Base URL",
-		"Host URL",
-		"Language",
+    "name": "driving_logbook",
+    "url_name": "drivinglogbook",
+    "title": "Driving Logbook",
+    "description": "Driving Logbook is an application to prepare tax reports determining actual use of the company car for private or business purposes.",
+    "author": {
+        "name": "Alexander Chernetsky",
+        "url": "http://gurtam.com"
+    },
+    "licenses": [
+        {
+            "type": " MIT",
+            "url": "https://github.com/wialon/wialon-app-drivinglogbook/blob/master/LICENSE-MIT"
+        }
+    ],
+    "dependencies": {
+        "jquery": "1.8.3",
+        "jquery.ui": "1.10.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/wialon/wialon-app-drivinglogbook"
+    },
+    "modules": [
+        "sdk"
+    ],
+    "docs": [],
+    "params": [
+        "Active SID",
+        "Base URL",
+        "Host URL",
+        "Language",
         "Current user"
-	],
-	"language": [
-		"en",
-		"ru",
-		"de",
-		"sk",
-		"cs",
-		"fi",
-		"ee"
-	],
-	"build_date": "2016-05-17",
-	"release_date": "2013-01-27",
-	"version": "2.1.0",
-	"keywords": [
-		"wialon",
-		"wialon-apps",
-		"log book"
-	],
-	"browser": {
-		"ie": "9+",
-		"opera": "10+",
-		"safari": "5+",
-		"chrome": "20+",
-		"firefox": "15+"
-	},
-	"logo": "logo.png",
-	"images_path": "images",
-	"desc_path": "desc"
+    ],
+    "language": [
+        "en",
+        "cs",
+        "da",
+        "de",
+        "es",
+        "et",
+        "fa",
+        "fi",
+        "ru",
+        "sk"
+    ],
+    "build_date": "2016-11-09",
+    "release_date": "2013-01-27",
+    "version": "2.1.0",
+    "keywords": [
+        "wialon",
+        "wialon-apps",
+        "log book"
+    ],
+    "browser": {
+        "ie": "9+",
+        "opera": "10+",
+        "safari": "5+",
+        "chrome": "20+",
+        "firefox": "15+"
+    },
+    "logo": "logo.png",
+    "images_path": "images",
+    "desc_path": "desc"
 }

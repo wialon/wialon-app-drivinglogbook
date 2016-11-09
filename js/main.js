@@ -120,7 +120,7 @@ function exec_callback(id) {
 		return id;
 	}
 	/// Fetch varable from 'GET' request
-	var get_html_var = _.memoize(function(name) {
+	var get_html_var = _.memoize(function(name, def) {
 		if (!name) {
 			return null;
 		}
@@ -131,7 +131,7 @@ function exec_callback(id) {
 				return decodeURIComponent(pair[1]);
 			}
 		}
-		return null;
+		return def || null;
 	});
 	/// Load scripts
 	function load_script(src, callback) {
@@ -364,9 +364,10 @@ function exec_callback(id) {
 	}
 	/// Init SDK
 	function init_sdk() {
-		var url = get_html_var("baseUrl");
+		var branch = get_html_var("b","master");
+		var url = get_html_var("baseUrl",(branch=="develop"?"https://dev-api.wialon.com":"https://hst-api.wialon.com"));
 		if (!url) {
-			url = get_html_var("hostUrl");
+			url = get_html_var("hostUrl","https://hosting.wialon.com");
 		}
 		if (!url) {
 			return null;
@@ -789,7 +790,9 @@ function exec_callback(id) {
 				end_odometer = getMeasureUnits({unit: unit, l: c.next.mileage / 1000});
 				trip_length = getMeasureUnits({unit: unit, l: (c.next.mileage - c.prev.mileage) / 1000});
 			}
-
+			var mu = getMeasureUnits({
+				unit: unit
+			});
 			var bySensor = (private_mode && status==textbox_items[1]);
 			var data = {
 				id: "trip_" + i,
@@ -808,9 +811,7 @@ function exec_callback(id) {
 				end_odometer: end_odometer,
 				trip_length: trip_length,
 				driver: '---',
-				metric_m: (getMeasureUnits({
-					unit: unit
-				})) ? $.localise.tr("mi") : $.localise.tr("km"),
+				metric_m: (mu == 1 || mu == 2) ? $.localise.tr("mi") : $.localise.tr("km"),
 				begin: {
 					geoZone: (bySensor || home_mode)?beginGeofence:getGeoZone({
 						lon: c.from.x,
@@ -1151,10 +1152,11 @@ function exec_callback(id) {
 			}
 			var time = wialon.core.Session.getInstance().getServerTime();
 			var user = wialon.core.Session.getInstance().getCurrUser();
-			var oparams = {};
-				oparams['un'] = user.getName(); // user name
-				oparams['tc'] = time; // unix time changes
-				oparams['ui_text'] = trip['uinput'];
+			// get old params and add new one
+			var oparams = trip.trip.p || {};
+			oparams['un'] = user.getName(); // user name
+			oparams['tc'] = time; // unix time changes
+			oparams['ui_text'] = trip['uinput'];
 
 			//if (note) {
 				oparams['nt'] = note;
@@ -1164,15 +1166,15 @@ function exec_callback(id) {
 					"unit/update_event_data", {
 						itemId: cunit.getId(),
 						eventType: 'trips',
-						ivalType: 4,
+						ivalType: 1,
 						ivalFrom: trip.from.t,
 						ivalTo: trip.to.t,
-						params:oparams
+						params: oparams
 					},
-					wialon.util.Helper.wrapCallback(qx.lang.Function.bind(function(trip,oparams, code) {
-						trip ['p'] = oparams;
-						updateFields(input, ctrips);
-					}, this, trip,oparams))
+					wialon.util.Helper.wrapCallback(qx.lang.Function.bind(function(trip, oparams, code) {
+						trip.trip['p'] = oparams;
+						updateFields(trip, ctrips);
+					}, this, trip, oparams))
 				);
 			}
 			// hide button
@@ -1187,6 +1189,7 @@ function exec_callback(id) {
 			}
 		}
 		wialon.core.Remote.getInstance().finishBatch(function(code, combinedCode) {
+			ctabs = groupByDate(ctrips);
 			refresh(input);
 		}, "apply_message");
 	}
@@ -1307,7 +1310,8 @@ function exec_callback(id) {
 	///
 	function ltranlate(unit) {
 		// get measure units
-		var metric_m = getMeasureUnits({unit: unit}) ? $.localise.tr("mi") : $.localise.tr("km");
+		var mu = getMeasureUnits({unit: unit});
+		var metric_m = (mu == 1 || mu == 2) ? $.localise.tr("mi") : $.localise.tr("km");
 		// add TH to table
 		var t = underi18n.MessageFactory(TRANSLATIONS);
 		$('#paginated-table thead').html(_.template(underi18n.template($('#th-row').html(), t), {
@@ -1370,17 +1374,17 @@ function exec_callback(id) {
 		//        };
 		var metric = settings.unit.getMeasureUnits();
 		if (settings.s) {
-			return (metric) ? Math.round(parseInt(settings.s) / 1.609344) : parseInt(settings.s);
+			return (metric == 1 || metric == 2) ? Math.round(parseInt(settings.s) / 1.609344) : parseInt(settings.s);
 		}
 		if (settings.l) {
 			var res = parseFloat(settings.l);
-			if (metric) {
+			if (metric == 1 || metric == 2) {
 				res *= 0.6214;
 			}
 			return res;
 		}
 		if (settings.h) {
-			return (metric) ? Math.round(parseInt(settings.h) / 3.2808) : parseInt(settings.h);
+			return (metric == 1 || metric == 2) ? Math.round(parseInt(settings.h) / 3.2808) : parseInt(settings.h);
 		}
 		return metric; // default return metric of units;
 	}
@@ -1398,7 +1402,10 @@ function exec_callback(id) {
 				custom: $.localise.tr("Custom"),
 				ok: "OK"
 			},
-			datepicker: {},
+			datepicker: {
+				prevText:'',
+				nextText:''
+			},
 			onInit: function(){
 				$("#ranging-time-wrap").intervalWialon('set', 0);
 				currentType = $("#ranging-time-wrap").intervalWialon('type');
@@ -1523,7 +1530,9 @@ function exec_callback(id) {
 			uname: cunit.getName(),
 			tdriver: tdriver
 		});
-
+		var mu = getMeasureUnits({
+			unit: cunit
+		});
 		var tfooter = _.template(underi18n.template($("#print-footer-tmpl-" + footer_tmpl).html(), t))({
 			summarize: summarize,
 			payment: payment,
@@ -1531,9 +1540,7 @@ function exec_callback(id) {
 			payment_less: payment_less,
 			payment_more: payment_more,
 			refund: refund,
-			metric_m: (getMeasureUnits({
-				unit: cunit
-			})) ? $.localise.tr("mi") : $.localise.tr("km"),
+			metric_m: (mu == 1 || mu == 2) ? $.localise.tr("mi") : $.localise.tr("km"),
 			start: ttrips[0],
 			end: ttrips[ttrips.length - 1],
 			tnow: getTimeStr(tnow, df),
@@ -1542,9 +1549,7 @@ function exec_callback(id) {
 
 		var content = template({
 			content: tcontent,
-			metric_m: (getMeasureUnits({
-				unit: cunit
-			})) ? $.localise.tr("mi") : $.localise.tr("km"),
+			metric_m: (mu == 1 || mu == 2) ? $.localise.tr("mi") : $.localise.tr("km"),
 			header: theader,
 			footer: tfooter,
 			SetTable: SetTable
@@ -1648,8 +1653,10 @@ function exec_callback(id) {
 			}],
 			n: "Statistic"
 		}]};
-
-		var metric_m = getMeasureUnits({unit: cunit}) ? $.localise.tr("mi") : $.localise.tr("km");
+		var mu = getMeasureUnits({
+			unit: cunit
+		});
+		var metric_m = (mu == 1 || mu == 2) ? $.localise.tr("mi") : $.localise.tr("km");
 		// statistic
 		var stat = json.sh[0].t[0].r;
 		if (SetTable.beginning) {
@@ -2280,57 +2287,62 @@ function exec_callback(id) {
 		$('#message-wrap').remove();
 		$('#table-wrap').append(html);
 	}
-	function updateFields(items, data) {
-		items = (items) ? items : $('#paginated-table .message'); // if item == undefined, then apply for all message's input
-		$(items).each(function() {
-			var item = $(this);
-			var tripId = $(item).closest('tr[id^="trip_"]').attr('id');
-			if (!tripId) return;
-			for (var i = 0, l = data.length; i < l; i++) {
-				// successful data storage
-				if (data[i].id == tripId && data[i] && data[i]['p']) {
-					if(!data[i]['changed']) continue;
-					data[i]['changed'] = false;
-					var mes = data[i]['p'];
+	function updateFields(trip, data) {
+		if (!trip['changed'] || !trip.trip.p) {
+			// nothing to update
+			return;
+		}
 
-					if (item.hasClass('message') && mes['ui_text']) {
-						item.val(mes['ui_text'])
-							.closest('td')
-							.removeClass('error');
-					} else if (item.hasClass('note') && (mes['nt'])) {
-						item.val(mes['nt'])
-							.closest('td')
-							.removeClass('error');
-					}
+		// update in memory
+		trip['changed'] = false;
+		var mes = trip.trip.p;
+		var time = null;
+		// update ctrips
+		if ('un' in mes) {
+			trip.uname = mes['un'];
+		}
+		if ('tc' in mes) {
+			time = getTimeStr(parseInt(mes['tc']));
+			trip.time_change = time;
+		}
 
-					if (mes['un']) {
-						item.closest('td').siblings('.uname-wrap').html(mes['un']);
-						// update ctrips
-						data[i].uname = mes['un'];
-					}
-					if (mes['tc']) {
-						var time = getTimeStr(parseInt(mes['tc']));
-						item.closest('td').siblings('.time_change-wrap').html(time);
-						// update ctrips
-						data[i].time_change = time;
-					}
+		// update UI
+		var $trip = $("#" + trip.id);
+		if (!$trip.length) {
+			return;
+		}
 
-					// update location
-					// ToDo: we rly need it here?
-					var from = data[i].fromL,
-						to = data[i].toL;
-					if (data[i].begin.geoZone) {
-						from += (from ? '; ': '') + '<span class="geozone">' + data[i].begin.geoZone + '</span>';
-					}
-					if (data[i].end.geoZone) {
-						to += (to ? '; ': '') + '<span class="geozone">' + data[i].end.geoZone + '</span>';
-					}
-					item.closest('td').siblings('.address-from').html(from);
-					item.closest('td').siblings('.address-to').html(to);
+		var item = $('.message', $trip);
+		if (item.hasClass('message') && mes['ui_text']) {
+			item.val(mes['ui_text'])
+				.closest('td')
+				.removeClass('error');
+		} else if (item.hasClass('note') && (mes['nt'])) {
+			item.val(mes['nt'])
+				.closest('td')
+				.removeClass('error');
+		}
 
-				}
-			}
-		});
+		if (mes['un']) {
+			item.closest('td').siblings('.uname-wrap').html(mes['un']);
+		}
+		if (time != null) {
+			item.closest('td').siblings('.time_change-wrap').html(time);
+		}
+
+		// update location
+		// ToDo: we rly need it here?
+		var from = trip.fromL,
+			to = trip.toL;
+
+		if (trip.begin.geoZone) {
+			from += (from ? '; ': '') + '<span class="geozone">' + trip.begin.geoZone + '</span>';
+		}
+		if (trip.end.geoZone) {
+			to += (to ? '; ': '') + '<span class="geozone">' + trip.end.geoZone + '</span>';
+		}
+		item.closest('td').siblings('.address-from').html(from);
+		item.closest('td').siblings('.address-to').html(to);
 	}
 	/// return date str
 	function getTimeStr(time, tf) {
@@ -2386,9 +2398,10 @@ function exec_callback(id) {
 		});
 
 		disabletableui();
-		var url = get_html_var("baseUrl");
+		var branch = get_html_var("b","master");
+		var url = get_html_var("baseUrl",(branch=="develop"?"https://dev-api.wialon.com":"https://hst-api.wialon.com"));
 		if (!url) {
-			url = get_html_var("hostUrl");
+			url = get_html_var("hostUrl",'https://hosting.wialon.com');
 		}
 		if (!url) {
 			return null;
@@ -2396,10 +2409,11 @@ function exec_callback(id) {
 
 		$('#execute-btn').hide();
 
-		LANG = get_html_var("lang");
-		if ((!LANG) || ($.inArray(LANG, ["en", "ru", "de", "sk", "cs", "fi", "ee"]) == -1)) {
+		LANG = get_html_var("lang","en");
+		if (availableLanguages && $.inArray(LANG, availableLanguages) == -1) {
 			LANG = "en";
 		}
+
 		$.localise('lang/', {
 			language: LANG
 		});

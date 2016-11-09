@@ -90,9 +90,9 @@ TRANSLATIONS = {
     "Interface": "Taulukko",
     "Group by day": "Päiväyksen mukaan",
     "Show summary": "Näytä yhteenveto",
-    "Mileage source": "",
-    "Internal trips odometer": "",
-    "Absolute mileage sensor": "",
-    "Mileage counter": "",
-    "Initial and final mileage": ""
+    "Mileage source": "Datalähde",
+    "Internal trips odometer": "Sisäinen algoritmi",
+    "Absolute mileage sensor": "Matka-anturi",
+    "Mileage counter": "Mittarilukema",
+    "Initial and final mileage": "Matkan laskentatapa"
 };

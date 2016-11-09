@@ -16,7 +16,7 @@
 			changePage(cPage, 1);
 		});
 
-		$pNumWrap.on("click", "input", function() {
+		$pNumWrap.off("click").on("click", "input", function() {
 			changePage(+$(this).data("index"));
 		});
 
@@ -34,7 +34,7 @@
 		}
 
         var resizeTimeout;
-        $(window).on('resize', function(){
+        $(window).off('resize').on('resize', function(){
             if (resizeTimeout) clearTimeout(resizeTimeout);
             resizeTimeout  = setTimeout(function(){
                 var possibleNumber = getLengthVisibleList();

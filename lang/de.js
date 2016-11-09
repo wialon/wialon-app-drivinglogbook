@@ -87,12 +87,12 @@ TRANSLATIONS = {
     "RRS type and version no.": "RRS Type und Versions Nr.",
     "Template": "Vorlage",
     "Error while export to xls": "Fehler beim Export zu Excel",
-    "Interface": "",
-    "Group by day": "",
-    "Show summary": "",
-    "Mileage source": "",
-    "Internal trips odometer": "",
-    "Absolute mileage sensor": "",
-    "Mileage counter": "",
-    "Initial and final mileage": ""
+    "Interface": "Tabelle",
+    "Group by day": "Gruppieren nach Datum",
+    "Show summary": "Zeige Zusammenfassung",
+    "Mileage source": "Datenquelle",
+    "Internal trips odometer": "Interner Algorithmus",
+    "Absolute mileage sensor": "Kilometer Sensor",
+    "Mileage counter": "Kilometerzähler",
+    "Initial and final mileage": "Kilometerberechnung"
 };
