@@ -1,30 +1,13 @@
 <!DOCTYPE html>
-<!-- ************************************************************************
-
-   Wialon Apps - WEB applications, developed on the basis of SDK for Wialon Hosting and Wialon Kit.
-
-   http://apps.gurtam.com
-
-   Copyright:
-     2002-2013 Gurtam, http://gurtam.com
-
-   License:
-     MIT: https://github.com/wialon/wialon-app-drivinglogbook/blob/master/LICENSE-MIT
-
-   Authors:
-     * Alexander Chernetsky
-
-************************************************************************ -->
-
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
-		<title>Driving Logbook</title>
+		<title></title>
 		<link rel="icon" type="image/png" href="./img/favicon.png">
 		<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
 		<meta http-equiv="pragma" content="no-cache"/>
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0"/>
 		<meta name="apple-mobile-web-app-capable" content="yes"/>
-		<meta names="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+		<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/jquery-ui-1.10.0.custom.min.css"/>
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/jquery-ui-timepicker-addon.css"/>
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/jquery.autocomplete.css"/>
@@ -45,13 +28,15 @@
 		<link rel="stylesheet" media="screen" type="text/css" href="./css/style.css"/>
 		<script src="//apps.wialon.com/plugins/wialon/interval/interval.wialon.js"></script>
 		<script>
-			var availableLanguages=null; 
+			var availableLanguages=null;
 			var documentationLink=null;
 			var is_white=null;
-			function appPredefineVariables(app_langs,doc_link,is_whitelabeled){
+			var APP_CONFIG = {};
+			function appPredefineVariables(app_langs,doc_link,is_whitelabeled,config){
 				availableLanguages=app_langs;
-				documentationLink=is_whitelabeled?null:doc_link;
+				documentationLink=is_whitelabeled?(config.help_url_link ? decodeURIComponent(config.help_url_link) : null):doc_link;
 				is_white=is_whitelabeled;
+				APP_CONFIG=config;
 			}
 		</script>
 	</head>
@@ -91,6 +76,8 @@
 					<a id="select-table-columns" href="#"></a>
 				</div>
 			</th>
+            <th>
+            </th>
 		</tr>
 		</script>
 		<script type="text/template" class="template" id="row">
@@ -99,9 +86,9 @@
 			<% if (SetTable.beginning) { %><td class="td-date"><%= time_from %></td><% } %>
 			<% if (SetTable.end) { %><td class="td-date"><%= time_to %></td> <% } %>
 			<% if (SetTable.duration) { %><td><%= duration %></td> <% } %>
-			<% if (SetTable.initLocation) { %><td class="address-cell address-from"><%= fromL %><% if( begin.geoZone && fromL !='---' ){ %><% if( fromL ){ %>; <% } %><span class="geozone"><%= begin.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+			<% if (SetTable.initLocation) { %><td class="address-cell address-from"><%= fromL %><% if( begin.geoZone && fromL !='---' ){ %><% if( fromL ){ %>; <% } %><span class="geozone"><%= begin.geoZone %></span><% }; %></td> <% } %> <!-- kept on one line to avoid extra spaces around the separator -->
 			<% if (SetTable.startOdometer) { %><td><%= start_odometer !== null ? start_odometer.toFixed(2) : "---" %></td> <% } %>
-			<% if (SetTable.finalLocation) { %><td class="address-cell address-to"><%= toL %><% if( end.geoZone && toL !='---' ){ %><% if( toL ){ %>; <% } %><span class="geozone"><%= end.geoZone %></span><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+			<% if (SetTable.finalLocation) { %><td class="address-cell address-to"><%= toL %><% if( end.geoZone && toL !='---' ){ %><% if( toL ){ %>; <% } %><span class="geozone"><%= end.geoZone %></span><% }; %></td> <% } %> <!-- kept on one line to avoid extra spaces around the separator -->
 			<% if (SetTable.endOdometer) { %><td><%= end_odometer !== null ? end_odometer.toFixed(2) : "---" %></td> <% } %>
 			<% if (SetTable.tripLength) { %><td><%= trip_length ? trip_length.toFixed(2) : "---" %></td> <% } %>
 			<% if (SetTable.driver) { %><td><%= driver %></td> <% } %>
@@ -114,18 +101,20 @@
 					</div>
 				</div>
 			</td><% } %>
-			<% if (SetTable.notes) { %><td>
+			<% if (SetTable.notes) { %><td class="text-notes" >
 				<div style="position: relative">
 					<div class="textboxcontainer">
 						<textarea class="tb input-select note" rows="2"></textarea>
 					</div>
 				</div>
-			</td><% } %>
-			<% if (SetTable.notes || SetTable.tripStatus) { %><td>
+			<% } %>
+			<% if (SetTable.notes || SetTable.tripStatus) { %>
 				<div style="position: relative">
 					<div class="save-btn"></div>
 				</div>
 			</td><% } %>
+            <td></td>
+            <td></td>
 		</tr>
 		</script>
 		<script type="text/template" class="template" id="summary-row">
@@ -258,9 +247,9 @@
 		<% if (SetTable.beginning) { %><td><%= data.time_from %></td><% } %>
 		<% if (SetTable.end) { %><td><%= data.time_to %></td> <% } %>
 		<% if (SetTable.duration) { %><td><%= data.duration %></td> <% } %>
-		<% if (SetTable.initLocation) { %><td><%= data.fromL %><% if( data.begin.geoZone ){ %><% if( data.fromL ){ %>; <% } %><i class="geozone"><%= data.begin.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+		<% if (SetTable.initLocation) { %><td><%= data.fromL %><% if( data.begin.geoZone ){ %><% if( data.fromL ){ %>; <% } %><i class="geozone"><%= data.begin.geoZone %></i><% }; %></td> <% } %> <!-- kept on one line to avoid extra spaces around the separator -->
 		<% if (SetTable.startOdometer) { %><td><%= data.start_odometer !== null ? data.start_odometer.toFixed(2) : "---" %></td> <% } %>
-		<% if (SetTable.finalLocation) { %><td><%= data.toL %><% if( data.end.geoZone ){ %><% if( data.toL ){ %>; <% } %><i class="geozone"><%= data.end.geoZone %></i><% }; %></td> <% } %> <!-- write to inline for remove space without fromL and ; -->
+		<% if (SetTable.finalLocation) { %><td><%= data.toL %><% if( data.end.geoZone ){ %><% if( data.toL ){ %>; <% } %><i class="geozone"><%= data.end.geoZone %></i><% }; %></td> <% } %> <!-- kept on one line to avoid extra spaces around the separator -->
 		<% if (SetTable.endOdometer) { %><td><%= data.end_odometer ? data.end_odometer.toFixed(2) : "---" %></td> <% } %>
 		<% if (SetTable.tripLength) { %><td><%= data.trip_length ? data.trip_length.toFixed(2) : "---" %></td> <% } %>
 		<% if (SetTable.driver) { %><td><%= data.driver %></td> <% } %>
@@ -272,7 +261,7 @@
 	</script>
 	<script type="text/template" class="template" id="print-header-tmpl-1">
 		<div style="text-align: center !important;">
-			<span><%_ Driving Logbook %></span>
+			<span><%= title %></span>
 			<br />
 			<span><%_ Unit %> '<%= uname %>'</span>
 			<br />
@@ -287,7 +276,7 @@
 		</div>
 	</script>
 	<script type="text/template" class="template" id="print-header-tmpl-2">
-		<h3><%_ Driving Logbook %></h3>
+		<h3><%= title %></h3>
 		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;">
 			<tbody style="vertical-align: middle;">
 				<tr>
@@ -533,18 +522,16 @@
 	<script type="text/template" class="template" id="print-footer-tmpl-1">
 		<br />
 		<table style="border-collapse: collapse;width: 100%;font-size:8px !important;border:0 none;">
-			<thead>
-				<tr>
-					<% if (start.SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
-					<% if (start.SetTable.end) { %><th><%_ End %></th><% } %>
-					<% if (start.SetTable.startOdometer) { %><th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th><% } %>
-					<% if (start.SetTable.endOdometer) { %><th><%_ Final mileage %>,&nbsp;<%= metric_m %></th><% } %>
-					<% if (start.SetTable.tripLength) { %><th><%_ Mileage %>,&nbsp;<%= metric_m %></th><% } %>
-					<% _.each(summarize, function(v, k) { %>
-						<th><%= k %>,&nbsp;<%= metric_m %></th>
-					<% }); %>
-				</tr>
-			</thead>
+			<tr>
+				<% if (start.SetTable.beginning) { %><th><%_ Beginning %></th><% } %>
+				<% if (start.SetTable.end) { %><th><%_ End %></th><% } %>
+				<% if (start.SetTable.startOdometer) { %><th><%_ Initial mileage %>,&nbsp;<%= metric_m %></th><% } %>
+				<% if (start.SetTable.endOdometer) { %><th><%_ Final mileage %>,&nbsp;<%= metric_m %></th><% } %>
+				<% if (start.SetTable.tripLength) { %><th><%_ Mileage %>,&nbsp;<%= metric_m %></th><% } %>
+				<% _.each(summarize, function(v, k) { %>
+					<th><%= k %>,&nbsp;<%= metric_m %></th>
+				<% }); %>
+			</tr>
 			<tbody style="vertical-align: middle;border:0 none;">
 				<% if (start.SetTable.beginning) { %><td><%= start.time_from %></td><% } %>
 				<% if (start.SetTable.end) { %><td><%= end.time_to %></td><% } %>
@@ -669,20 +656,25 @@
         <a href="#" class="iw-similar-btn future" data-similar="future"></a>
       </div>
 	</div>
-	</script>
-	<!-- END: Underscore Template Definition. -->
+    </script>
+        <!-- END: Underscore Template Definition. -->
 	<div id="header">
 		<div class="container">
-			<img id="logo" style="float: left;"src="img/logo.svg"/>
-			<div id="logo-title" class="title">Driving Logbook</div>
+			<img id="logo" style="float: left;" src="img/logo.svg"/>
+			<div id="logo-title" class="title"></div>
+            <a class="help" target="_blank" href="#" style="display: none">
+                <img src="img/help.png"/>
+            </a>
 			<div class="clear"></div>
 		</div>
 		<div id="loading"></div>
 	</div>
+
 	<div class="container full-size">
 		<div id="data-inputs" class="clearfix">
 			<div class="pull-left">
-				<select class="input-select" id="units-select" style="width: 200px;"></select>
+                <select class="input-select2" id="group_select" style="width: 200px;"></select>
+				<select class="input-select2" id="units-select" style="width: 200px;"></select>
 			</div>
 			<div id="ranging-time-wrap" class="ranging-time-wrap pull-left">
 				<!-- template: ranging-time-tpl -->

@@ -1,4 +1,4 @@
-TRANSLATIONS = {
+{
     "Driving Logbook": "Kørebog",
     "Logbook": "Logbog",
     "Unit": "Enhed",
@@ -17,7 +17,7 @@ TRANSLATIONS = {
     "User": "Bruger",
     "Last changes": "Seneste ændringer",
     "Trip status": "Tur status",
-    "Business": "Erhver",
+    "Business": "Erhverv",
     "Personal": "Privat",
     "Notes": "Noter",
     "Page&nbsp;": "Side&nbsp;",
@@ -61,6 +61,8 @@ TRANSLATIONS = {
     "City": "By",
     "Declaration holder": "Erklæring ",
     "Vehicle": "Køretøj",
+    "Odometer value": "kilometerstand værdi",
+    "Odometer date": "kilometerstand dato",
     "Available from": "Tilgængelig fra",
     "Available to": "Tilgængelig til",
     "Type": "Type",
@@ -93,4 +95,4 @@ TRANSLATIONS = {
     "Absolute mileage sensor": "kilometer sensor",
     "Mileage counter": "kilometerstand",
     "Initial and final mileage": "Beregnet Kilometer"
-};
+}

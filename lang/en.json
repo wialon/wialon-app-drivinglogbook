@@ -1,4 +1,4 @@
-TRANSLATIONS = {
+{
     "Driving Logbook": "",
     "Logbook": "",
     "Unit": "",
@@ -94,5 +94,7 @@ TRANSLATIONS = {
     "Internal trips odometer": "Internal algorithm",
     "Absolute mileage sensor": "Mileage sensor",
     "Mileage counter": "Mileage counter",
-    "Initial and final mileage": "Mileage calculation"
-};
+    "Initial and final mileage": "Mileage calculation",
+    "All units": "",
+    "Out of the group": ""
+}

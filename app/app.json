@@ -1,15 +1,16 @@
 {
+    "deprecated": true,
     "name": "driving_logbook",
     "url_name": "drivinglogbook",
     "title": "Driving Logbook",
     "description": "Driving Logbook is an application to prepare tax reports determining actual use of the company car for private or business purposes.",
     "author": {
-        "name": "Alexander Chernetsky",
+        "name": "",
         "url": "http://gurtam.com"
     },
     "licenses": [
         {
-            "type": " MIT",
+            "type": "MIT",
             "url": "https://github.com/wialon/wialon-app-drivinglogbook/blob/master/LICENSE-MIT"
         }
     ],
@@ -34,6 +35,7 @@
     ],
     "language": [
         "en",
+        "br",
         "cs",
         "da",
         "de",
@@ -41,12 +43,19 @@
         "et",
         "fa",
         "fi",
+        "fr-CA",
+        "fr",
+        "hr",
+        "nl",
+        "pl",
+        "ro",
         "ru",
-        "sk"
+        "sk",
+        "sl"
     ],
-    "build_date": "2016-11-09",
+    "build_date": "2026-11-20",
     "release_date": "2013-01-27",
-    "version": "2.1.0",
+    "version": "2.2.1",
     "keywords": [
         "wialon",
         "wialon-apps",
@@ -60,6 +69,5 @@
         "firefox": "15+"
     },
     "logo": "logo.png",
-    "images_path": "images",
     "desc_path": "desc"
 }

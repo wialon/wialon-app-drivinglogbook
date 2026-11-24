@@ -1,4 +1,4 @@
-TRANSLATIONS = {
+{
     "Driving Logbook": "Ajopäiväkirja",
     "Logbook": "Päiväkirja",
     "Unit": "Ajoneuvo",
@@ -94,5 +94,7 @@ TRANSLATIONS = {
     "Internal trips odometer": "Sisäinen algoritmi",
     "Absolute mileage sensor": "Matka-anturi",
     "Mileage counter": "Mittarilukema",
-    "Initial and final mileage": "Matkan laskentatapa"
-};
+    "Initial and final mileage": "Matkan laskentatapa",
+    "All units": "Kaikki ajoneuvot",
+    "Out of the group": "Ryhmän ulkopuolella"
+}

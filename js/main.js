@@ -25,6 +25,8 @@ function exec_callback(id) {
 (function($, _) {
 	/// Global units cache
 	var units = {};
+	/// Global unit groups cache
+	var groups = {};
 	/// Global current trips
 	var ctrips = [];
 	/// Global current trips grouped by date
@@ -37,18 +39,18 @@ function exec_callback(id) {
 	var ctimes = null;
 	/// Items for textbox input
 	var textbox_items = [];
-	///
+	/// Global drivers bindings history
 	var gdh = [];
-	///
+	/// Current language
 	var LANG = "";
-	///
+	/// Base URL of the print (export to XLS) service
 	var PRINT_URL = "..";
-	/// save object of localization massive
+	/// Localization object
 	var Locale = "";
-	///
+	/// Resources with drivers
 	var resources = [];
-	/// Time format
-	var en_format_time = ''; //"yyyy-MM-dd HH:mm";
+	/// Time format, e.g. "yyyy-MM-dd HH:mm"
+	var en_format_time = '';
 	/// options for date
 	var initDatepickerOpt;
 	/// save geoZones
@@ -57,7 +59,7 @@ function exec_callback(id) {
 	/// Changes flag
 	var changed = [];
 	/// SetTable
-	var SetTable = { // default sett to TRUE
+	var SetTable = { // default settings
 		beginning: true,
 		end: true,
 		duration: true,
@@ -74,7 +76,7 @@ function exec_callback(id) {
 	};
 	var TableTranslations = {};
 	var TableColumns = {};
-	/// flag for check exist change for columns settings
+	/// flag: columns settings have been changed
 	var flagExistChangeSet = false;
 	var TZ = 0,
 		DST = 0,
@@ -119,7 +121,7 @@ function exec_callback(id) {
 		callbacks[id] = callback;
 		return id;
 	}
-	/// Fetch varable from 'GET' request
+	/// Fetch variable from 'GET' request
 	var get_html_var = _.memoize(function(name, def) {
 		if (!name) {
 			return null;
@@ -154,24 +156,104 @@ function exec_callback(id) {
 		document.getElementsByTagName("head")[0].appendChild(script);
 	}
 	/// Fill in the interface 'select' html for control unit selection
-	function fill_units_select(items) {
-		units = {}; // update global variable
+	function fill_units_select(items, group_id) {
+		if ( !group_id ) {
+			units = {}; // update global variable
+		} else {
+			items = get_items_from_group(group_id, items);
+		}
 		var html = "";
-		for (var i = 0, len = items.length; i < len; i++) {
-			var item = items[i];
-			if (!item) {
-				continue;
-			}
-			var access = item.getUserAccess();
-			if (wialon.util.Number.and(wialon.item.Unit.accessFlag.registerEvents, access)) {
-				units[item.getId()] = item;
-				html += "<option value='" + item.getId() + "'>" + item.getName() + "</option>";
-			}
-			if (!units || units.length < 1) {
-				alert($.localise.tr("List of units empty."));
+		if ( items ) {
+			for (var i = 0, len = items.length; i < len; i++) {
+				var item = items[i];
+				if (!item) {
+					continue;
+				}
+				var access = item.getUserAccess();
+				if (wialon.util.Number.and(wialon.item.Unit.accessFlag.registerEvents, access)) {
+					units[item.getId()] = item;
+					html += "<option value='" + item.getId() + "'>" + item.getName() + "</option>";
+				}
+				if (!units || units.length < 1) {
+					alert($.localise.tr("List of units empty."));
+				}
 			}
 		}
 		$("#units-select").html(html);
+	}
+	/// Get sorted units of the group ("-1" - all units, "0" - units outside of groups)
+	function get_items_from_group (gid, items) {
+		var arr = [];
+		if ( gid === "-1" ) { // All
+			for (var i in items) {
+				arr.push(items[i]);
+			}
+			arr = _.sortBy(arr, function(a) {
+				return a.getName();
+			});
+			return arr;
+		} else if ( gid === "0" ) { // Outside of groups
+			arr = Object.keys(units);
+			var tmp = [],
+				l,
+				temp_obj = {};
+
+			for ( var g in groups ) {
+				tmp = groups[g].getUnits();
+				l = tmp.length;
+				for ( ;l--; ) {
+					temp_obj[ tmp[l] ] = 1;
+				}
+			}
+			var arr1 = Object.keys(temp_obj);
+			var out_arr = [];
+			for ( var i = 0; i < arr.length; i++ ) {
+				if ( arr1.indexOf( arr[i] ) === -1 ) {
+					out_arr.push( units[arr[i]] );
+				}
+			}
+			out_arr = _.sortBy(out_arr, function(a) {
+				return a.getName();
+			});
+			return out_arr;
+		}
+
+		var gr = groups[gid];
+		var garr = ( gr ? gr.getUnits() : [] );
+		if (!garr.length) {
+			return [];
+		}
+
+		for (var i in garr) {
+			if ( units[ garr[i] ] ) {
+				arr.push( units[ garr[i] ] );
+			}
+		}
+		arr = _.sortBy(arr, function(a) {
+			return a.getName();
+		});
+		return arr;
+	}
+	/// Fill in the interface 'select' html for control unit group selection
+	function fill_unit_groups_select( g ) {
+		groups = {};
+		var html_groups = "<option value='-1'>" + $.localise.tr("All units") + "</option>";
+		html_groups += "<option value='0'>" + $.localise.tr("Out of the group") + "</option>";
+
+		if ( g ) {
+			for (var i = 0, len = g.length; i < len; i++) {
+				var item = g[i];
+				if (!item) {
+					continue;
+				}
+				var access = item.getUserAccess();
+				if (wialon.util.Number.and(wialon.item.Unit.accessFlag.registerEvents, access)) {
+					groups[item.getId()] = item;
+					html_groups += "<option value='" + item.getId() + "'>" + item.getName() + "</option>";
+				}
+			}
+		}
+		$("#group_select").html(html_groups);
 	}
 	/// Login result
 	function login(code) {
@@ -208,6 +290,8 @@ function exec_callback(id) {
 		var fd;
 		var zones_res;
 		var items;
+		var groups;
+
 		wialon.core.Session.getInstance().searchItems(spec_resource, true, flags_resource, 0, 0, function(code, data) {
 			if (code === 0 && data && data.items && data.items.length > 0) {
 				for (var i = 0, len = data.items.length; i < len; i++) {
@@ -251,6 +335,7 @@ function exec_callback(id) {
 			sortType: "sys_name"
 		};
 		var flags_unit = wialon.item.Item.dataFlag.base | wialon.item.Unit.dataFlag.sensors;
+
 		wialon.core.Session.getInstance().searchItems(spec_unit, true, flags_unit, 0, 0, function(code, data) {
 			$("#table-wrap").activity(false);
 			if (code || !data) {
@@ -261,6 +346,24 @@ function exec_callback(id) {
 				items = data.items;
 			}
 		});
+		var spec_group = {
+			itemsType: "avl_unit_group",
+			propName: "sys_name",
+			propValueMask: "*",
+			sortType: "sys_name"
+		};
+
+		wialon.core.Session.getInstance().searchItems(spec_group, true, 0x1, 0, 0, function(code, data) {
+			$("#table-wrap").activity(false);
+			if (code || !data) {
+				// unit groups are optional: nothing to do
+			} else if (!data.items || data.items.length < 1) {
+				// unit groups are optional: nothing to do
+			} else {
+				groups = data.items;
+			}
+		});
+
 		// run after request
 		wialon.core.Remote.getInstance().finishBatch(qx.lang.Function.bind(function() {
 
@@ -321,8 +424,11 @@ function exec_callback(id) {
 					);
 				}
 
-				fill_units_select(items);
-				ltranlate(items[0]);
+				fill_units_select( items );
+				fill_unit_groups_select( groups );
+				if ( items ) {
+					ltranlate(items[0]);
+				}
 				renderStaticTpl();
 				initDatepicker( initDatepickerOpt.wd, initDatepickerOpt.fd, initDatepickerOpt.wd_orig);
 				addEventsListeners();
@@ -364,8 +470,7 @@ function exec_callback(id) {
 	}
 	/// Init SDK
 	function init_sdk() {
-		var branch = get_html_var("b","master");
-		var url = get_html_var("baseUrl",(branch=="develop"?"https://dev-api.wialon.com":"https://hst-api.wialon.com"));
+		var url = get_html_var("baseUrl","https://hst-api.wialon.com");
 		if (!url) {
 			url = get_html_var("hostUrl","https://hosting.wialon.com");
 		}
@@ -376,7 +481,7 @@ function exec_callback(id) {
 		var user = get_html_var("user");
 		user = (user) ? user : "";
 
-		wialon.core.Session.getInstance().initSession(url, undefined, 0x800, undefined);
+		wialon.core.Session.getInstance().initSession(url, "gapp_driving_logbook", 0x800, undefined);
 		var sid = get_html_var("sid");
 		var authHash = get_html_var("authHash");
 
@@ -386,7 +491,7 @@ function exec_callback(id) {
 			wialon.core.Session.getInstance().duplicate(sid, user, true, login);
 		}
 	}
-	///
+	/// Check that value is defined
 	function ischeck(val) {
 		return (val === null || val === undefined) ? false : true;
 	}
@@ -395,7 +500,7 @@ function exec_callback(id) {
 		var unit_id = $("#units-select").val();
 		return units[unit_id];
 	}
-	/// Lays table update
+	/// Deferred loading of drivers
 	var refresh_drivers = (function() {
 		var timeout = null;
 		return function(unit, times, trips) {
@@ -639,7 +744,7 @@ function exec_callback(id) {
 			ctrips = getNormalizedData(trips_array, sensors_array ,unit, mileage_sensor);
 			ctabs = groupByDate(ctrips);
 
-			// assync get drivers and redraw
+			// async get drivers and redraw
 			refresh_drivers(cunit, times, ctrips);
 
 			if (ui_flags & 0x1) {
@@ -655,7 +760,7 @@ function exec_callback(id) {
 		}
 	}
 
-	/// adapter for data for FULL DATA!
+	/// Load user settings (geofences, print options, UI flags, mileage source)
 	function loadUserSettings(){
 		var user = wialon.core.Session.getInstance().getCurrUser();
 		var settings = user.getCustomProperty('__app__logbook_settings', '{}');
@@ -715,7 +820,7 @@ function exec_callback(id) {
 		var m = [], type, status;
 		textbox_items = [$.localise.tr("Business"), $.localise.tr("Personal"), $.localise.tr("Home-Office-Home")];
 		var private_mode, home_mode, beginGeofence, endGeofence, chngd;
-		for (var i = 0, len = trips.length; i < len; i++) { // cycle on table trips
+		for (var i = 0, len = trips.length; i < len; i++) { // loop over trips
 			var c = trips[i];
 			if( home === null || office === null) loadUserSettings();
 			type=null;
@@ -839,17 +944,14 @@ function exec_callback(id) {
 				data.toL = data.toL.replace(/km from/g, 'км от');
 			}
 
-			// if (chngd) {//mark auto changed
-			// 	changed = true;
 			m.push(data);
-			// }
 		}
 		textbox_items = _.uniq(textbox_items);
 		updateStateList(textbox_items);
 		return m
 	}
 
-	///
+	/// Group trips by date and calculate summary
 	function groupByDate(trips) {
 		var tabs = [];
 		var ind = null;
@@ -922,13 +1024,13 @@ function exec_callback(id) {
 		return (curZones) ? curZones.n : null;
 	}
 
-	///  get Table Value
-	function _getTableValue(data) { // calculate ceil value
+	/// get Table Value
+	function _getTableValue(data) { // calculate cell value
 		if (typeof data == "object")
 			if (typeof data.t == "string") return data.t; else return "";
 		else return data;
 	}
-	///
+	/// Convert drivers bindings history to the list of time intervals
 	function part_dh_by_tm(dh) {
 		var result = [];
 		if (dh.length < 1) {
@@ -960,7 +1062,7 @@ function exec_callback(id) {
 		}
 		return result;
 	}
-	///
+	/// Load drivers for trips
 	function load_drivers(unit, times, trips) {
 		wialon.core.Remote.getInstance().startBatch("load_drivers");
 
@@ -1070,7 +1172,7 @@ function exec_callback(id) {
 			trip = trips[i];
 			elem = rows[i]
 			// set status
-			text = get_trip_mtext (trip) || ""; // "Business"; // set default value
+			text = get_trip_mtext (trip) || ""; // set default value
 			elem.value = text;
 			$(elem).textbox({
 				items: textbox_items
@@ -1120,7 +1222,7 @@ function exec_callback(id) {
 
 		var parsedTrips = [];
 
-		// this add for remove send message of other change
+		// when a single row is saved, send only its changes
 		if (input && $(input).closest('[id^="trip_"]').length) {
 			var key = $(input).closest('[id^="trip_"]').attr('id').split('_')[1];
 			if (key && ctrips[key]) {
@@ -1158,9 +1260,7 @@ function exec_callback(id) {
 			oparams['tc'] = time; // unix time changes
 			oparams['ui_text'] = trip['uinput'];
 
-			//if (note) {
-				oparams['nt'] = note;
-			//} // user note
+			oparams['nt'] = note; // user note
 			if(trip['changed']){
 				wialon.core.Remote.getInstance().remoteCall(
 					"unit/update_event_data", {
@@ -1181,7 +1281,7 @@ function exec_callback(id) {
 			$('#' + trip.id + ' .save-btn').hide();
 			// remove current trip
 			changed = _.without(changed, trip.id);
-			// check if there are exists changed trips
+			// check if there are changed trips left
 			if (!changed.length) {
 				$('#print-btn').prop('disabled', false);
 				$('#export-xls-btn').prop('disabled', false);
@@ -1193,7 +1293,7 @@ function exec_callback(id) {
 			refresh(input);
 		}, "apply_message");
 	}
-	/// Lays table update
+	/// Deferred table update
 	var refresh = (function() {
 		// timeout used for skip large number of requests
 		var timeout = null;
@@ -1247,13 +1347,13 @@ function exec_callback(id) {
 		}
 		return template;
 	}
-	/// Disabled ui
+	/// Disable ui
 	function disableui() {
 		$('#select-table-columns-wrap').hide();
 		$("#execute-btn").attr("disabled", "disabled");
 		disabletableui();
 	}
-	/// Undisabled ui
+	/// Enable ui
 	function undisableui() {
 		try {
 			$("#table-wrap").activity(false);
@@ -1262,7 +1362,7 @@ function exec_callback(id) {
 		$('#select-table-columns-wrap').show();
 		undisabletableui();
 	}
-	/// Disabled table ui
+	/// Disable table ui
 	function disabletableui() {
 		$("#page-selector").hide();
 		$("#paginated-table").hide();
@@ -1272,7 +1372,7 @@ function exec_callback(id) {
 		$('#export-csv-btn').hide();
 		$('#message-wrap').remove();
 	}
-	/// Undisabled table ui
+	/// Enable table ui
 	function undisabletableui() {
 		$("#page-selector").show();
 		$("#paginated-table").show();
@@ -1307,7 +1407,7 @@ function exec_callback(id) {
 
 		$("#print-btn").val($.localise.tr("Print"));
 	}
-	///
+	/// Translate table header and columns list, prepare column getters
 	function ltranlate(unit) {
 		// get measure units
 		var mu = getMeasureUnits({unit: unit});
@@ -1366,12 +1466,11 @@ function exec_callback(id) {
 	/// get Measure Units
 	function getMeasureUnits(settings) {
 		if (!settings) return null;
-		//        var set = {
-		//            unit: unit,
-		//            s: null, // speed in km/h to mph
-		//            l: null, // length in meter to mil
-		//            h: null // Altitude in meter to ft
-		//        };
+		// settings:
+		//   unit - wialon unit
+		//   s - speed, km/h to mph
+		//   l - length, km to miles
+		//   h - altitude
 		var metric = settings.unit.getMeasureUnits();
 		if (settings.s) {
 			return (metric == 1 || metric == 2) ? Math.round(parseInt(settings.s) / 1.609344) : parseInt(settings.s);
@@ -1390,11 +1489,11 @@ function exec_callback(id) {
 	}
 
 	var currentType, currentInterval;
-	/// init initDatepicker
+	/// init datepicker
 	function initDatepicker(firstDay, setDateFormat, firstDayOrig) {
 		var options = {
 			template: $('#ranging-time-tpl').html(),
-			 labels: {
+			labels: {
 				yesterday: $.localise.tr("Yesterday"),
 				today: $.localise.tr("Today"),
 				week: $.localise.tr("Week"),
@@ -1448,6 +1547,8 @@ function exec_callback(id) {
 	/// print
 	function print() {
 		var WinPrint = window.open('about:blank', '', 'left=300,top=300,right=500,bottom=500,width=1000,height=500');
+		if (!WinPrint)
+			return false;
 
 		var t = underi18n.MessageFactory(TRANSLATIONS);
 		var template = _.template(underi18n.template($("#print").html(), t));
@@ -1473,7 +1574,7 @@ function exec_callback(id) {
 				for (var ij = 0; ij < tab.trips.length; ij++) {
 					var mtext = tab.trips[ij].trip.p ? tab.trips[ij].trip.p.ui_text : '';
 					var note = tab.trips[ij].trip.p ? tab.trips[ij].trip.p.nt : '';
-					tab.trips[ij]['message'] = mtext ? mtext : ""; //"Business";
+					tab.trips[ij]['message'] = mtext ? mtext : "";
 					tab.trips[ij]['note'] = note ? note : "";
 				}
 
@@ -1528,11 +1629,13 @@ function exec_callback(id) {
 			tfrom: tfrom,
 			tto: tto,
 			uname: cunit.getName(),
-			tdriver: tdriver
+			tdriver: tdriver,
+			title: decodeURIComponent(APP_CONFIG.alias || "Driving Logbook")
 		});
 		var mu = getMeasureUnits({
 			unit: cunit
 		});
+
 		var tfooter = _.template(underi18n.template($("#print-footer-tmpl-" + footer_tmpl).html(), t))({
 			summarize: summarize,
 			payment: payment,
@@ -1606,7 +1709,7 @@ function exec_callback(id) {
 				var mtext = data.trip.p ? data.trip.p.ui_text : '';
 				var note = data.trip.p ? data.trip.p.nt : '';
 
-				data['message'] = mtext ? mtext : ""; //"Business";
+				data['message'] = mtext ? mtext : "";
 				data['note'] = note ? note : "";
 				ttrips.push(data);
 
@@ -1756,7 +1859,7 @@ function exec_callback(id) {
 		return row;
 	}
 
-	// export to CVS
+	// export to CSV
 	function exportcsv() {
 		var times = getTimes();
 
@@ -1782,7 +1885,7 @@ function exec_callback(id) {
 		}
 		cnt += '\n';
 
-		// add trip data data
+		// add trip data
 		for (var i = 0; i < ttrips.length; i++) {
 			for (var j = 0; j < selected.length; j++) {
 				// prepare string and add it to content (with separator)
@@ -1938,8 +2041,7 @@ function exec_callback(id) {
 				ctrips[i]['uinput'] = text;
 				ctrips[i]['changed'] = true;
 			}
-			$(".message").val(text); // fire event for save data;
-			// $(window).trigger('updateData');
+			$(".message").val(text);
 		});
 		// Save necessary row trip or all trips
 		$('#apply_changes, .save-btn').live('click', function(e) {
@@ -2017,7 +2119,15 @@ function exec_callback(id) {
 			});
 		})();
 
+		(function () {
+			$("#group_select").change(function( e ) {
+				var val = $(this).val();
+				fill_units_select( units, val );
+			});
+		})();
+
 		$("#print-btn").click(print);
+
 		$("#export-csv-btn").click(exportcsv);
 		$("#export-xls-btn").click(exportxls);
 		jQuery("#config-btn").click(function() {
@@ -2098,7 +2208,6 @@ function exec_callback(id) {
 		});
 
 		$("#time-select").on("click", ".time-template", function() {
-			//            if ($(this).hasClass('active')) return;
 			if (changed.length) {
 				if(!confirm($.localise.tr('You have unsaved changes. Do you want to discard these changes?'))) {
 					return false;
@@ -2151,7 +2260,7 @@ function exec_callback(id) {
 		));
 		return matches ? decodeURIComponent(matches[1]) : undefined;
 	}
-	/// support cookies getCookie
+	/// support cookies setCookie
 	function setCookie(name, value, options) {
 		options = options || {};
 
@@ -2180,7 +2289,7 @@ function exec_callback(id) {
 
 		document.cookie = updatedCookie;
 	}
-	/// support cookies getCookie
+	/// support cookies deleteCookie
 	function deleteCookie(name) {
 		setCookie(name, "", {
 			expires: -1
@@ -2202,22 +2311,20 @@ function exec_callback(id) {
 		if( ! interval)
 			return ;
 		value = parseInt(value, 10);
-		// var interval = get_time_from_input();
 		if (value == 4 && LOCAL_STATE.time_custom === null) {
 			LOCAL_STATE.time_custom = interval;
 		}
 		LOCAL_STATE.time_type = value;
 
-
-			$('#execute-btn').hide();
-			if (changeTimeTimeout !== null) {
-				clearTimeout(changeTimeTimeout);
-			}
-			changeTimeTimeout = setTimeout(function() {
-				execute();
-				clearTimeout(changeTimeTimeout);
-				changeTimeTimeout = null;
-			}, 1000);
+		$('#execute-btn').hide();
+		if (changeTimeTimeout !== null) {
+			clearTimeout(changeTimeTimeout);
+		}
+		changeTimeTimeout = setTimeout(function() {
+			execute();
+			clearTimeout(changeTimeTimeout);
+			changeTimeTimeout = null;
+		}, 1000);
 
 		activateTimeTemplate(value);
 	}
@@ -2275,8 +2382,8 @@ function exec_callback(id) {
 
 	/** show message
 	 *
-	 *  @mes {string} message. may be HTML
-	 *  @className {string} class for wrapper of message: none = info, "error" - error message
+	 *  @param {string} message   message, may be HTML
+	 *  @param {string} className   class for wrapper of message: none = info, "error" - error message
 	 */
 	function showMessage(message, className) {
 
@@ -2331,7 +2438,6 @@ function exec_callback(id) {
 		}
 
 		// update location
-		// ToDo: we rly need it here?
 		var from = trip.fromL,
 			to = trip.toL;
 
@@ -2388,18 +2494,21 @@ function exec_callback(id) {
 
 	/// A function to execute after the DOM is ready.
 	$(document).ready(function() {
+		var title = decodeURIComponent(APP_CONFIG.alias || "Driving Logbook");
+		$("#logo-title").html(title);
+		document.title = title;
+
 		// detect right print service url
 		$.ajax(PRINT_URL + '/print.php', {
 			complete: function(response, status) {
 				if (status != "success") {
-					PRINT_URL = "http://apps.wialon.com"
+					PRINT_URL = "https://apps.wialon.com"
 				}
 			}
 		});
 
 		disabletableui();
-		var branch = get_html_var("b","master");
-		var url = get_html_var("baseUrl",(branch=="develop"?"https://dev-api.wialon.com":"https://hst-api.wialon.com"));
+		var url = get_html_var("baseUrl","https://hst-api.wialon.com");
 		if (!url) {
 			url = get_html_var("hostUrl",'https://hosting.wialon.com');
 		}
@@ -2415,7 +2524,13 @@ function exec_callback(id) {
 		}
 
 		$.localise('lang/', {
-			language: LANG
+			language: LANG,
+			complete: function () {
+				if (documentationLink) {
+					$("#header .help").attr("href", documentationLink);
+					$("#header .help").css("display","")
+				}
+			}
 		});
 
 		// load datepicker locale

@@ -1,4 +1,4 @@
-TRANSLATIONS = {
+{
     "Driving Logbook": "Журнал поездок",
     "Logbook": "Журнал",
     "Unit": "Объект",
@@ -94,5 +94,7 @@ TRANSLATIONS = {
     "Internal trips odometer": "Внутренний алгоритм",
     "Absolute mileage sensor": "Датчик пробега",
     "Mileage counter": "Счетчик пробега",
-    "Initial and final mileage": "Расчет пробега"
-};
+    "Initial and final mileage": "Расчет пробега",
+    "All units": "Все объекты",
+    "Out of the group": "Вне группы"
+}

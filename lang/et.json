@@ -1,4 +1,4 @@
-TRANSLATIONS = {
+{
     "Driving Logbook": "Sõidupäevik",
     "Logbook": "Logiraamat",
     "Unit": "Objekt",
@@ -95,4 +95,4 @@ TRANSLATIONS = {
     "Absolute mileage sensor": "",
     "Mileage counter": "",
     "Initial and final mileage": ""
-};
+}

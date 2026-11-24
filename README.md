@@ -1,67 +1,28 @@
-# Driver Logbook, version 2.1.0: (May 2, 2016)
+# Driving Logbook, version 2.2.1: (November 15, 2017)
 This is WEB application based on Apps from Gurtam (http://apps.wialon.com).
 
-## Description:
+**This is a legacy app: it is no longer developed or maintained. The code is published as is, without support.**
+
+## Description
 Driving Logbook app allows requesting a special report for trips. This report specifies the beginning and the end of the trip, its type (business/personal trip), initial and final position, etc. Trip type can be changed manually, but the «work» type is stated by default.
 Besides, the columns, containing user notes, can be added to the report manually. All the changes, made by the user, are logged. This report can be printed.
 
-## License:
-[The MIT License](../master/LICENSE-MIT)
+## License
+[The MIT License](LICENSE-MIT)
 
-## Requirements:
- * Browser: Google Chome 20+, Firefox 15+, Safari 5+, IE 9+, Opera 10+
- * Language: en, ru, de, sk, cs, fi, et, da
- * Components: SDK, Маршруты
- * URL params: Active SID, Base URL, Host URL
+## Requirements
+ * Browser: a current version of Google Chrome, Firefox, Safari or Edge
+ * Language: en, br, cs, da, de, es, et, fa, fi, fr-CA, fr, hr, nl, pl, ro, ru, sk, sl
+ * Components: SDK
+ * URL params: Active SID, Base URL, Host URL, Language, Current user
 
-## Quick start:
-Apps activation through the management system: http://docs.gurtam.com/en/hosting/cms/apps/apps  
-Working with applications in the GPS tracking system: http://docs.gurtam.com/en/hosting/user/apps/apps
+## Quick start
+Apps activation through the management system: https://help.wialon.com/en/wialon-hosting/user-guide/management-system/apps  
+Working with applications in the GPS tracking system: https://help.wialon.com/en/wialon-hosting/user-guide/monitoring-system/apps
 
-## Release History
- * v1.1 (January 27, 2013)  
-- initial release
+## Installation
+The repository contains the app in the form it is hosted in. Put the files on a web server and open `index.html` with the URL params listed above, for example
+`index.html?sid=<Active SID>&baseUrl=https://hst-api.wialon.com&user=<Current user>&lang=en`.
 
- * v1.2 (January 31, 2013)
-- column with drivers added
-- small bugs fixed
-
- * v1.3 (May 30, 2013)
-- Russian language supported
-
- * v1.4 (July 4, 2013)
-- Fixed problems in IE
-
- * v1.5 (March 18, 2014)
-- Add US metric.
-- Expanded information about trips
-
- * v1.6 (May 12, 2014)
-- Added support for user settings for addresses and dates.
-
- * v1.6.1 (November 24, 2014)
-- Fixed translations for "Business" and "Personal" trip statuses.
-
- * v1.6.2 (January 20, 2014)
-- Date Interval plugin used
-
- * v2.0.0 (March 11, 2015)
-- Event system used
-
- * v2.0.1 (July 21, 2015)
-- Use absolute mileage sensor to calculate trip distance
-- Small bugs fixed
-
- * v2.0.2 (November 2, 2015)
-- Export to CSV and XLS added
-- Estonian language added
-
- * v2.0.3: (April 8, 2016)
-- Export to XLS fixed
-- Translations updated
-- Minor bugs fixed
-
- * v2.1.0: (May 2, 2016)
-- Group by days
-- Counters added
-- Danish language added
+ * The date interval picker and the datepicker locales are loaded from `//apps.wialon.com/plugins/`.
+ * The export to XLS posts the table to `print.php` in the parent folder of the app or, when it is not available there, to `https://apps.wialon.com/print.php`.
